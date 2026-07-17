@@ -300,8 +300,16 @@ This project is developed for educational and research purposes.
 
 ---
 
-# 👨‍💻 Author
+# 👥 Project Team
 
-**Krish Malik**
+Cloud Guardian is developed by:
 
-GitHub: https://github.com/krishmalik007
+- **Krish Malik**
+- **Armaan**
+- **Amanpreet**
+
+---
+
+### GitHub Repository
+
+**Krish Malik:** https://github.com/krishmalik007
