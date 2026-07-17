@@ -14,6 +14,7 @@ env/
 # Environment Variables
 .env
 .env.*
+!.env.example
 
 # Logs
 logs/
@@ -22,27 +23,33 @@ logs/
 # Python Cache
 .pytest_cache/
 .mypy_cache/
+.ruff_cache/
 
 # VS Code
 .vscode/
 
 # JetBrains IDE
 .idea/
+*.iml
 
 # OS Files
 .DS_Store
 Thumbs.db
+desktop.ini
 
 # Build Files
 build/
 dist/
 *.egg-info/
+*.egg
 
 # ==========================
 # React / Node
 # ==========================
 frontend/node_modules/
 frontend/dist/
+frontend/.next/
+frontend/build/
 
 # npm Logs
 npm-debug.log*
@@ -53,9 +60,19 @@ yarn-error.log*
 # Docker
 # ==========================
 *.pid
+opensearch-data/
 
 # ==========================
 # Coverage Reports
 # ==========================
 .coverage
 htmlcov/
+coverage.xml
+*.cover
+
+# ==========================
+# Misc
+# ==========================
+*.swp
+*.swo
+*~
