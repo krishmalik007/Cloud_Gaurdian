@@ -373,7 +373,7 @@ This project is for educational and research purposes.
 
 ## Author
 
-**Krish Malik**
+**Armaan Gautam**
 
 ---
 
