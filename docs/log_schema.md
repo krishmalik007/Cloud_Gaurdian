@@ -1,0 +1,389 @@
+# Cloud Guardian - Normalized Log Schema
+
+**Version:** 1.0  
+**Project:** Cloud Guardian - AI-Powered Multi-Cloud Threat Detection & Correlation Platform  
+**Author:** Krish Malik  
+**Last Updated:** July 2026
+
+---
+
+# 1. Introduction
+
+Cloud Guardian collects security logs from multiple cloud providers such as Amazon Web Services (AWS) and Microsoft Azure. Since every cloud provider stores logs in different formats, it becomes difficult to process and analyze them using a common workflow.
+
+To solve this problem, Cloud Guardian converts all incoming logs into a single standardized format called the **Normalized Log Schema**.
+
+Every component of the system including the Parser, Normalizer, Correlation Engine, Risk Scoring Engine, Alert Engine, and Dashboard uses this common schema.
+
+---
+
+# 2. Purpose
+
+The purpose of the Normalized Log Schema is to:
+
+- Standardize logs from different cloud providers.
+- Reduce complexity during log analysis.
+- Enable event correlation across multiple cloud platforms.
+- Simplify risk assessment.
+- Provide a common format for storing logs in OpenSearch.
+- Improve dashboard visualization and reporting.
+
+---
+
+# 3. Log Processing Flow
+
+```
+AWS CloudTrail Logs
+AWS VPC Flow Logs
+Azure Activity Logs
+        │
+        ▼
+   Log Collector
+        │
+        ▼
+      Parser
+        │
+        ▼
+   Normalizer
+        │
+        ▼
+ Normalized Log Schema
+        │
+        ▼
+ Correlation Engine
+        │
+        ▼
+ Risk Scoring Engine
+        │
+        ▼
+   Alert Engine
+        │
+        ▼
+   OpenSearch Database
+```
+
+---
+
+# 4. Normalized Log Schema
+
+Every log entering the system must follow the structure below.
+
+| Field | Data Type | Description |
+|--------|-----------|-------------|
+| log_id | String | Unique identifier for the log entry |
+| timestamp | DateTime | Time when the event occurred |
+| cloud_provider | String | Cloud provider (AWS or Azure) |
+| service | String | Cloud service generating the log |
+| event_name | String | Name of the security event |
+| event_category | String | Category of the event |
+| user | String | Username or identity associated with the event |
+| source_ip | String | Source IP address |
+| destination_ip | String | Destination IP address (if applicable) |
+| resource | String | Resource affected by the event |
+| action | String | Action performed |
+| status | String | Success or Failure |
+| severity | String | Low, Medium, High or Critical |
+| region | String | Cloud region where the event occurred |
+| risk_score | Integer | Risk score assigned by the Risk Engine |
+| correlation_id | String | Incident ID generated after correlation |
+| raw_log | Object | Original cloud log without modification |
+
+---
+
+# 5. JSON Representation
+
+```json
+{
+  "log_id": "LOG-10001",
+  "timestamp": "2026-07-17T10:25:30Z",
+  "cloud_provider": "AWS",
+  "service": "CloudTrail",
+  "event_name": "ConsoleLogin",
+  "event_category": "Authentication",
+  "user": "admin",
+  "source_ip": "192.168.1.15",
+  "destination_ip": "",
+  "resource": "AWS Management Console",
+  "action": "Login",
+  "status": "Success",
+  "severity": "Low",
+  "region": "ap-south-1",
+  "risk_score": 20,
+  "correlation_id": "",
+  "raw_log": {}
+}
+```
+
+---
+
+# 6. Field Description
+
+## log_id
+
+A unique identifier assigned to every log received by the system.
+
+Example:
+
+```
+LOG-10001
+```
+
+---
+
+## timestamp
+
+Stores the exact date and time when the event occurred.
+
+Example:
+
+```
+2026-07-17T10:25:30Z
+```
+
+---
+
+## cloud_provider
+
+Identifies the cloud platform.
+
+Possible Values:
+
+- AWS
+- Azure
+
+---
+
+## service
+
+Specifies the cloud service generating the log.
+
+Examples:
+
+- CloudTrail
+- VPC Flow Logs
+- Azure Activity Logs
+
+---
+
+## event_name
+
+Represents the event recorded by the cloud service.
+
+Examples:
+
+- ConsoleLogin
+- CreateUser
+- DeleteBucket
+- StartVM
+- StopVM
+
+---
+
+## event_category
+
+Groups similar events together.
+
+Examples:
+
+- Authentication
+- Authorization
+- Network
+- Storage
+- Compute
+- IAM
+
+---
+
+## user
+
+Stores the username or identity associated with the event.
+
+Example:
+
+```
+admin
+```
+
+---
+
+## source_ip
+
+Stores the source IP address.
+
+Example:
+
+```
+192.168.1.15
+```
+
+---
+
+## destination_ip
+
+Stores the destination IP address when available.
+
+Example:
+
+```
+10.0.0.25
+```
+
+---
+
+## resource
+
+Specifies the cloud resource involved.
+
+Examples:
+
+- EC2 Instance
+- S3 Bucket
+- Azure VM
+- IAM User
+
+---
+
+## action
+
+Describes the action performed.
+
+Examples:
+
+- Login
+- Create
+- Delete
+- Read
+- Write
+- Update
+
+---
+
+## status
+
+Represents the execution result.
+
+Possible Values:
+
+- Success
+- Failure
+
+---
+
+## severity
+
+Indicates the importance of the event.
+
+Possible Values:
+
+- Low
+- Medium
+- High
+- Critical
+
+---
+
+## region
+
+Cloud region where the event occurred.
+
+Examples:
+
+- ap-south-1
+- us-east-1
+- Central India
+
+---
+
+## risk_score
+
+Numeric score assigned after evaluating the event.
+
+Example:
+
+```
+75
+```
+
+---
+
+## correlation_id
+
+Stores the incident identifier generated by the Correlation Engine.
+
+Example:
+
+```
+INC-2026-0001
+```
+
+---
+
+## raw_log
+
+Contains the complete original log before parsing and normalization.
+
+This field helps during forensic investigations.
+
+---
+
+# 7. Sample Event Flow
+
+```
+AWS CloudTrail Log
+
+↓
+
+Parser
+
+↓
+
+Normalizer
+
+↓
+
+Standard Log Schema
+
+↓
+
+Correlation Engine
+
+↓
+
+Risk Scoring Engine
+
+↓
+
+Alert Engine
+
+↓
+
+OpenSearch
+
+↓
+
+Dashboard
+```
+
+---
+
+# 8. Benefits of the Normalized Log Schema
+
+- Provides a common structure for all cloud logs.
+- Simplifies data processing and storage.
+- Enables multi-cloud event correlation.
+- Improves threat detection accuracy.
+- Reduces parser complexity.
+- Makes searching in OpenSearch faster and more consistent.
+- Supports future integration with additional cloud providers.
+
+---
+
+# 9. Future Enhancements
+
+The schema can be extended to support additional cloud platforms such as Google Cloud Platform (GCP), Oracle Cloud Infrastructure (OCI), and IBM Cloud by mapping their log formats to the same normalized structure without changing the existing processing pipeline.
+
+---
+
+# 10. Conclusion
+
+The Normalized Log Schema serves as the foundation of the Cloud Guardian platform. It provides a standardized format for representing cloud security logs, allowing all processing modules to work consistently regardless of the original cloud provider. This approach improves scalability, simplifies development, and enables efficient threat detection, event correlation, and security monitoring across multiple cloud environments.
