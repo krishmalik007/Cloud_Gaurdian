@@ -5,27 +5,17 @@ from datetime import datetime, timedelta
 class EventStore:
     """
     Stores recent events for correlation.
-    Automatically removes old events based on a sliding time window.
+    Automatically removes expired events.
     """
 
     def __init__(self, window_minutes=10):
-        # Time window for keeping events
-        self.window = timedelta(minutes=window_minutes)
 
-        # Dictionary:
-        # {
-        #   "krish": [event1, event2],
-        #   "john": [event3]
-        # }
+        self.default_window = timedelta(minutes=window_minutes)
+
         self.event_memory = defaultdict(list)
 
     def add_event(self, event):
-        """
-        Add a new event to memory.
-        Automatically adds timestamp if missing.
-        """
 
-        # Add timestamp if not already present
         if "timestamp" not in event:
             event["timestamp"] = datetime.utcnow()
 
@@ -33,13 +23,9 @@ class EventStore:
 
         self.event_memory[username].append(event)
 
-        # Remove expired events
         self.cleanup(username)
 
     def cleanup(self, username):
-        """
-        Remove events older than the configured time window.
-        """
 
         current_time = datetime.utcnow()
 
@@ -49,20 +35,37 @@ class EventStore:
 
             for event in self.event_memory[username]
 
-            if current_time - event["timestamp"] <= self.window
+            if current_time - event["timestamp"] <= self.default_window
 
         ]
 
-    def get_events(self, username):
+    def get_events(self, username, window_minutes=None):
         """
-        Return all recent events for a user.
+        Returns events for a user.
+
+        If window_minutes is supplied, only events inside that
+        time window are returned.
         """
 
-        return self.event_memory.get(username, [])
+        events = self.event_memory.get(username, [])
+
+        if window_minutes is None:
+            return events
+
+        current_time = datetime.utcnow()
+
+        custom_window = timedelta(minutes=window_minutes)
+
+        return [
+
+            event
+
+            for event in events
+
+            if current_time - event["timestamp"] <= custom_window
+
+        ]
 
     def clear(self):
-        """
-        Remove all stored events.
-        """
 
         self.event_memory.clear()
