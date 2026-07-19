@@ -1,13 +1,14 @@
-from collections import defaultdict
-
 from app.logger import logger
 
-# Rule modules
-from app.correlation.rules import authentication_rules
-from app.correlation.rules import iam_rules
-from app.correlation.rules import resource_rules
-from app.correlation.rules import data_rules
-from app.correlation.rules import config_rules
+from app.correlation.event_store import EventStore
+
+from app.correlation.rules import (
+    authentication_rules,
+    iam_rules,
+    resource_rules,
+    data_rules,
+    config_rules,
+)
 
 
 class CorrelationEngine:
@@ -15,80 +16,73 @@ class CorrelationEngine:
     Main Correlation Engine.
 
     Responsibilities:
-    1. Store recent events
-    2. Execute correlation rules
-    3. Collect alerts
+    1. Receive normalized events.
+    2. Store events using EventStore.
+    3. Fetch recent events.
+    4. Execute all rule modules.
+    5. Return generated alerts.
     """
 
     def __init__(self):
-        """
-        Store events grouped by username.
-        """
 
-        self.event_memory = defaultdict(list)
+        # Event Store manages timestamps and sliding window
+        self.event_store = EventStore(window_minutes=10)
 
     def process_event(self, normalized_event):
-        """
-        Process one normalized event.
-
-        Returns:
-            List of generated alerts.
-        """
 
         username = normalized_event.get("username", "UNKNOWN")
 
-        # Store event in memory
-        self.event_memory[username].append(normalized_event)
+        # Store event
+        self.event_store.add_event(normalized_event)
 
-        logger.info(
-            f"Stored event for user: {username}"
-        )
+        logger.info(f"Stored event for user: {username}")
+
+        # Fetch only recent events for this user
+        recent_events = self.event_store.get_events(username)
 
         alerts = []
 
-        # Authentication rules
+        # Authentication Rules
         alerts.extend(
             authentication_rules.check(
-                self.event_memory,
+                recent_events,
                 normalized_event
             )
         )
 
-        # IAM rules
+        # IAM Rules
         alerts.extend(
             iam_rules.check(
-                self.event_memory,
+                recent_events,
                 normalized_event
             )
         )
 
-        # Resource rules
+        # Resource Rules
         alerts.extend(
             resource_rules.check(
-                self.event_memory,
+                recent_events,
                 normalized_event
             )
         )
 
-        # Data rules
+        # Data Security Rules
         alerts.extend(
             data_rules.check(
-                self.event_memory,
+                recent_events,
                 normalized_event
             )
         )
 
-        # Configuration rules
+        # Configuration Rules
         alerts.extend(
             config_rules.check(
-                self.event_memory,
+                recent_events,
                 normalized_event
             )
         )
 
-        logger.info(
-            f"Generated {len(alerts)} alerts."
-        )
+        logger.info(f"Generated {len(alerts)} alerts.")
 
         return alerts
 
