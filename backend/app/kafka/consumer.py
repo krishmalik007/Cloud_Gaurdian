@@ -4,6 +4,7 @@ from confluent_kafka import Consumer
 
 from app.config import get_settings
 from app.logger import logger
+from app.parser.parser import log_parser
 
 settings = get_settings()
 
@@ -50,7 +51,11 @@ class KafkaConsumerService:
                     message.value().decode("utf-8")
                 )
 
-                logger.info(f"Received Log: {log_data}")
+                try:
+                    parsed_log = log_parser.parse(log_data)
+                    logger.info(f"Parsed Log: {parsed_log}")
+                except Exception as e:
+                    logger.error(f"Parser Error: {e}")
 
         except KeyboardInterrupt:
 
