@@ -307,6 +307,7 @@ Cloud Guardian is developed by:
 - **Krish Malik**
 - **Armaan**
 - **Amanpreet**
+- **Lovepreet**
 
 ---
 
