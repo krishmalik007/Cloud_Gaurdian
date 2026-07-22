@@ -86,6 +86,41 @@ RULE_CONFIG = {
         "threshold": 4,
         "window_minutes": 10,
         "severity": "CRITICAL"
-    }
+    },
+
+
+    # ============================================================
+    # RESOURCE RULES
+    # ============================================================
+    "PUBLIC_BUCKET": {
+        "severity": "CRITICAL"
+    },
+    "SECURITY_GROUP_OPEN": {
+        "severity": "CRITICAL"
+    },
+    "INSTANCE_CREATED": {
+        "severity": "MEDIUM"
+    },
+    "INSTANCE_TERMINATED": {
+        "severity": "MEDIUM"
+    },
+    "UNUSUAL_REGION_RESOURCE": {
+        "severity": "HIGH",
+        "allowed_regions": [
+            "us-east-1",
+            "ap-south-1"
+        ]
+    },
+    "LOAD_BALANCER_DELETED": {
+        "severity": "HIGH"
+    },
+    "PUBLIC_SNAPSHOT": {
+        "severity": "HIGH"
+    },
+    "MULTIPLE_RESOURCE_DELETIONS": {
+        "severity": "CRITICAL",
+        "threshold": 4,
+        "window_minutes": 10
+    },
 
 }
