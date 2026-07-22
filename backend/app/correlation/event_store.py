@@ -27,32 +27,34 @@ class EventStore:
 
     def cleanup(self, username):
 
-        current_time = datetime.utcnow()
+        events = self.event_memory.get(username, [])
+
+        if not events:
+            return
+
+        latest_time = events[-1]["timestamp"]
 
         self.event_memory[username] = [
 
             event
 
-            for event in self.event_memory[username]
+            for event in events
 
-            if current_time - event["timestamp"] <= self.default_window
+            if latest_time - event["timestamp"] <= self.default_window
 
         ]
 
     def get_events(self, username, window_minutes=None):
-        """
-        Returns events for a user.
-
-        If window_minutes is supplied, only events inside that
-        time window are returned.
-        """
 
         events = self.event_memory.get(username, [])
 
         if window_minutes is None:
             return events
 
-        current_time = datetime.utcnow()
+        if not events:
+            return []
+
+        reference_time = events[-1]["timestamp"]
 
         custom_window = timedelta(minutes=window_minutes)
 
@@ -62,7 +64,7 @@ class EventStore:
 
             for event in events
 
-            if current_time - event["timestamp"] <= custom_window
+            if reference_time - event["timestamp"] <= custom_window
 
         ]
 

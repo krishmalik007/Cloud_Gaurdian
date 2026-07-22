@@ -1,10 +1,11 @@
 """
 Correlation Rule Configuration
 
-Every detection rule has its own threshold
-and time window.
+Every detection rule has its own threshold,
+severity and time window.
 
-This file keeps all rule parameters in one place.
+Keeping rule parameters here allows easy
+tuning without modifying rule logic.
 """
 
 RULE_CONFIG = {
@@ -23,14 +24,14 @@ RULE_CONFIG = {
 
     "MULTIPLE_IP_LOGIN": {
         "threshold": 3,
-        "window_minutes": 2,
+        "window_minutes": 10,
         "severity": "HIGH"
     },
 
     "BUSINESS_HOURS_LOGIN": {
         "start_hour": 9,
         "end_hour": 18,
-        "severity": "LOW"
+        "severity": "MEDIUM"
     },
 
     "CONCURRENT_LOGIN": {
@@ -39,10 +40,12 @@ RULE_CONFIG = {
     },
 
     "DISABLED_USER_LOGIN": {
+        "expected_status": "DISABLED",
         "severity": "CRITICAL"
     },
 
     "SERVICE_ACCOUNT_LOGIN": {
+        "account_type": "SERVICE",
         "severity": "HIGH"
     },
 
@@ -51,4 +54,5 @@ RULE_CONFIG = {
         "window_minutes": 5,
         "severity": "HIGH"
     }
+
 }
