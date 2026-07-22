@@ -159,6 +159,38 @@ RULE_CONFIG = {
         "severity": "CRITICAL",
         "threshold": 4,
         "window_minutes": 10
+    },
+
+
+    # ============================================================
+    # CONFIGURATION RULES
+    # ============================================================
+    "AUDIT_LOGGING_DISABLED": {
+        "severity": "CRITICAL"
+    },
+    "ENCRYPTION_DISABLED": {
+        "severity": "CRITICAL"
+    },
+    "MFA_ENFORCEMENT_DISABLED": {
+        "severity": "HIGH"
+    },
+    "WEAK_PASSWORD_POLICY": {
+        "severity": "HIGH",
+        "minimum_length": 12
+    },
+    "SECURITY_SERVICE_DISABLED": {
+        "severity": "HIGH"
+    },
+    "BACKUP_DISABLED": {
+        "severity": "HIGH"
+    },
+    "RETENTION_POLICY_CHANGED": {
+        "severity": "MEDIUM"
+    },
+    "MULTIPLE_CONFIGURATION_CHANGES": {
+        "severity": "CRITICAL",
+        "threshold": 4,
+        "window_minutes": 10
     }
 
 }
