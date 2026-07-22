@@ -123,4 +123,42 @@ RULE_CONFIG = {
         "window_minutes": 10
     },
 
+
+
+    # ============================================================
+    # DATA RULES
+    # ============================================================
+    "DATA_DOWNLOAD": {
+        "severity": "HIGH",
+        "threshold_mb": 500
+    },
+    "SENSITIVE_FILE_ACCESS": {
+        "severity": "HIGH"
+    },
+    "MULTIPLE_STORAGE_READS": {
+        "severity": "MEDIUM",
+        "threshold": 20,
+        "window_minutes": 5
+    },
+    "DATA_EXFILTRATION": {
+        "severity": "CRITICAL",
+        "threshold_mb": 1000
+    },
+    "PUBLIC_DATABASE_SNAPSHOT": {
+        "severity": "CRITICAL"
+    },
+    "MASS_OBJECT_DELETION": {
+        "severity": "HIGH",
+        "threshold": 25,
+        "window_minutes": 10
+    },
+    "CROSS_REGION_COPY": {
+        "severity": "HIGH"
+    },
+    "MULTIPLE_DATA_EVENTS": {
+        "severity": "CRITICAL",
+        "threshold": 4,
+        "window_minutes": 10
+    }
+
 }
