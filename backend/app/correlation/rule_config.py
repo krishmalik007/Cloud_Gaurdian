@@ -53,6 +53,39 @@ RULE_CONFIG = {
         "threshold": 2,
         "window_minutes": 5,
         "severity": "HIGH"
+    },
+
+    # ==========================================================
+    # IAM RULES
+    # ==========================================================
+    "IAM_PRIVILEGE_ESCALATION": {
+        "severity": "CRITICAL"
+    },
+    
+    "NEW_ADMIN_USER": {
+        "severity": "HIGH"
+    },
+    
+    "ROOT_ACCOUNT_USAGE": {
+        "severity": "CRITICAL"
+    },
+    "MFA_DISABLED": {
+        "severity": "HIGH"
+    },
+    "IAM_POLICY_CHANGED": {
+        "severity": "MEDIUM"
+    },
+    "ACCESS_KEY_CREATED": {
+        "severity": "MEDIUM"
+    },
+    "ACCESS_KEY_REACTIVATED": {
+        "inactive_days": 90,
+        "severity": "HIGH"
+    },
+    "MULTIPLE_IAM_CHANGES": {
+        "threshold": 4,
+        "window_minutes": 10,
+        "severity": "CRITICAL"
     }
 
 }

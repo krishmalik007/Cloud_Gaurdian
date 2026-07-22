@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, UTC
 
 
 class Alert:
@@ -29,7 +29,7 @@ class Alert:
 
         self.event = event
 
-        self.timestamp = datetime.utcnow().isoformat()
+        self.timestamp = datetime.now(UTC).isoformat()
 
     def to_dict(self):
 

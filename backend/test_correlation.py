@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, UTC
 
 from app.correlation.correlation_engine import correlation_engine
 
@@ -132,7 +132,7 @@ login_success_events = [
         "provider": "AWS",
         "event_type": "LOGIN_SUCCESS",
         "source_ip": "192.168.1.10",
-        "timestamp": datetime(2026, 7, 22, 2, 0, 0)
+        "timestamp": datetime.now(UTC)
     },
 
     {
@@ -140,7 +140,7 @@ login_success_events = [
         "provider": "AWS",
         "event_type": "LOGIN_SUCCESS",
         "source_ip": "192.168.1.11",
-        "timestamp": datetime(2026, 7, 22, 2, 0, 20)
+        "timestamp": datetime.now(UTC)
     },
 
     {
@@ -148,7 +148,7 @@ login_success_events = [
         "provider": "AWS",
         "event_type": "LOGIN_SUCCESS",
         "source_ip": "192.168.1.12",
-        "timestamp": datetime(2026, 7, 22, 2, 0, 40)
+        "timestamp": datetime.now(UTC)
     }
 
 ]
@@ -171,7 +171,7 @@ disabled_user_events = [
         "event_type": "LOGIN_SUCCESS",
         "user_status": "DISABLED",
         "source_ip": "10.0.0.10",
-        "timestamp": datetime.utcnow()
+        "timestamp": datetime.now(UTC)
     }
 
 ]
@@ -194,7 +194,7 @@ service_account_events = [
         "event_type": "LOGIN_SUCCESS",
         "account_type": "SERVICE",
         "source_ip": "10.0.0.20",
-        "timestamp": datetime.utcnow()
+        "timestamp": datetime.now(UTC)
     }
 
 ]
@@ -216,7 +216,7 @@ multiple_provider_events = [
         "provider": "AWS",
         "event_type": "LOGIN_SUCCESS",
         "source_ip": "192.168.1.10",
-        "timestamp": datetime(2026, 7, 22, 10, 0, 0)
+        "timestamp": datetime.now(UTC)
     },
 
     {
@@ -224,7 +224,7 @@ multiple_provider_events = [
         "provider": "Azure",
         "event_type": "LOGIN_SUCCESS",
         "source_ip": "192.168.1.11",
-        "timestamp": datetime(2026, 7, 22, 10, 2, 0)
+        "timestamp": datetime.now(UTC)
     }
 
 ]
