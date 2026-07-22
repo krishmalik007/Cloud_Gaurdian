@@ -1,4 +1,6 @@
 from app.logger import logger
+from app.risk.risk_engine import risk_engine
+from app.alerts.alert_engine import alert_engine
 
 from app.correlation.event_store import EventStore
 
