@@ -8,6 +8,10 @@ from app.services.opensearch_service import opensearch_service
 from app.routes.health import router as health_router
 from app.routes.logs import router as logs_router
 from app.routes.incidents import router as incidents_router
+from app.routes.dashboard import router as dashboard_router
+from app.routes.auth import router as auth_router
+from app.routes.audit import router as audit_router
+from app.routes.users import router as users_router
 
 # Load application settings
 settings = get_settings()
@@ -23,6 +27,10 @@ app = FastAPI(
 app.include_router(health_router)
 app.include_router(logs_router)
 app.include_router(incidents_router)
+app.include_router(dashboard_router)
+app.include_router(auth_router)
+app.include_router(audit_router)
+app.include_router(users_router)
 
 
 @app.on_event("startup")

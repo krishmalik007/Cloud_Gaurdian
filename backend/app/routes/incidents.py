@@ -1,79 +1,56 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 
+from app.auth.permissions import require_role
 from app.logger import logger
-from app.services.incident_service import incident_service
+from app.schemas.incident import IncidentCreate
+from app.services.log_processor import log_processor
 
 router = APIRouter(
-    prefix="/incidents",
-    tags=["Incidents"]
+    prefix="/logs",
+    tags=["Logs"]
 )
 
 
-@router.get("/")
-async def get_all_incidents():
+@router.post("/")
+async def process_cloud_log(
+    raw_log: IncidentCreate,
+    current_user=Depends(require_role("ADMIN", "ANALYST"))
+):
     """
-    Retrieve all incidents.
+    Process an incoming cloud log.
+
+    Supported Providers:
+    - AWS
+    - Azure
+    - GCP
+
+    Accessible by:
+    - ADMIN
+    - ANALYST
     """
+
     try:
-        incidents = incident_service.get_all_incidents()
+
+        logger.info(
+            f"User '{current_user['username']}' submitted a new cloud log."
+        )
+
+        incident = log_processor.process_log(
+            raw_log.model_dump()
+        )
 
         return {
             "success": True,
-            "count": len(incidents),
-            "incidents": incidents
+            "message": "Log processed successfully.",
+            "processed_by": current_user["username"],
+            "incident": incident
         }
 
     except Exception as e:
-        logger.exception("Failed to fetch incidents.")
-        raise HTTPException(status_code=500, detail=str(e))
 
+        logger.exception("Error while processing cloud log.")
 
-@router.get("/{incident_id}")
-async def get_incident(incident_id: str):
-    """
-    Retrieve a single incident.
-    """
-    try:
-        incident = incident_service.get_incident(incident_id)
-
-        if not incident:
-            raise HTTPException(
-                status_code=404,
-                detail="Incident not found."
-            )
-
-        return incident
-
-    except HTTPException:
-        raise
-
-    except Exception as e:
-        logger.exception("Failed to fetch incident.")
-        raise HTTPException(status_code=500, detail=str(e))
-
-
-@router.delete("/{incident_id}")
-async def delete_incident(incident_id: str):
-    """
-    Delete an incident.
-    """
-    try:
-        deleted = incident_service.delete_incident(incident_id)
-
-        if not deleted:
-            raise HTTPException(
-                status_code=404,
-                detail="Incident not found."
-            )
-
-        return {
-            "success": True,
-            "message": f"Incident '{incident_id}' deleted successfully."
-        }
-
-    except HTTPException:
-        raise
-
-    except Exception as e:
-        logger.exception("Failed to delete incident.")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(
+            status_code=500,
+            detail=str(e)
+        )
