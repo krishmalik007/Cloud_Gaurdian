@@ -1,3 +1,4 @@
+from app.logger import logger
 from app.storage.opensearch_client import client
 
 
@@ -9,43 +10,71 @@ class IncidentRepository:
 
         if not client.indices.exists(index=self.INDEX_NAME):
             client.indices.create(index=self.INDEX_NAME)
+            logger.info(f"Created OpenSearch index: {self.INDEX_NAME}")
 
-    def save_incident(self, incident):
+    def save_incident(self, incident: dict):
 
-        response = client.index(
+        client.index(
             index=self.INDEX_NAME,
             id=incident["incident_id"],
             body=incident,
             refresh=True
         )
 
-        return response
+        return incident
 
-    def get_incident(self, incident_id):
+    def get_incident(self, incident_id: str):
 
-        return client.get(
-            index=self.INDEX_NAME,
-            id=incident_id
-        )
+        try:
+            response = client.get(
+                index=self.INDEX_NAME,
+                id=incident_id
+            )
+
+            return response["_source"]
+
+        except Exception:
+            return None
 
     def get_all_incidents(self):
 
-        return client.search(
+        response = client.search(
             index=self.INDEX_NAME,
             body={
                 "query": {
                     "match_all": {}
-                }
+                },
+                "sort": [
+                    {
+                        "created_at": {
+                            "order": "desc"
+                        }
+                    }
+                ]
             }
         )
 
-    def delete_incident(self, incident_id):
+        incidents = []
 
-        return client.delete(
-            index=self.INDEX_NAME,
-            id=incident_id,
-            refresh=True
-        )
+        for hit in response["hits"]["hits"]:
+            incidents.append(hit["_source"])
+
+        return incidents
+
+    def delete_incident(self, incident_id: str):
+
+        try:
+
+            client.delete(
+                index=self.INDEX_NAME,
+                id=incident_id,
+                refresh=True
+            )
+
+            return True
+
+        except Exception:
+            return False
 
 
 incident_repository = IncidentRepository()

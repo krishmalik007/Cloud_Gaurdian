@@ -3,7 +3,7 @@ import re
 from app.logger import logger
 
 
-class LogNormalizer:
+class BaseNormalizer:
     """
     Generic Log Normalizer
 
@@ -257,4 +257,3 @@ class LogNormalizer:
         return normalized_log
 
 
-log_normalizer = LogNormalizer()
