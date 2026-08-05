@@ -12,6 +12,8 @@ from app.routes.dashboard import router as dashboard_router
 from app.routes.auth import router as auth_router
 from app.routes.audit import router as audit_router
 from app.routes.users import router as users_router
+from app.routes.threat import router as threat_router
+from app.routes.iocs import router as iocs_router
 
 # Load application settings
 settings = get_settings()
@@ -31,6 +33,8 @@ app.include_router(dashboard_router)
 app.include_router(auth_router)
 app.include_router(audit_router)
 app.include_router(users_router)
+app.include_router(threat_router)
+app.include_router(iocs_router)
 
 
 @app.on_event("startup")
