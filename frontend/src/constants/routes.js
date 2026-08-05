@@ -1,0 +1,18 @@
+export const ROUTES = {
+  LOGIN: '/login',
+  REGISTER: '/register',
+  DASHBOARD: '/',
+  INCIDENTS: '/incidents',
+  INCIDENT_DETAILS: '/incidents/:id',
+  UPLOAD_LOGS: '/operations/upload',
+  IOC_MANAGEMENT: '/threat/iocs',
+  THREAT_INTEL: '/threat/search',
+  USERS: '/admin/users',
+  AUDIT_LOGS: '/admin/audit',
+  PROFILE: '/settings/profile',
+  SETTINGS: '/settings/config',
+  UNAUTHORIZED: '/401',
+  FORBIDDEN: '/403',
+  NOT_FOUND: '/404',
+  SERVER_ERROR: '/500',
+};
