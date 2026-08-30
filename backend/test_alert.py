@@ -73,7 +73,7 @@ alerts = [
 # CALCULATE RISK
 # ============================================================
 
-risk = risk_engine.calculate_risk(alerts)
+risk = risk_engine.calculate_risk(event, alerts)
 
 
 # ============================================================

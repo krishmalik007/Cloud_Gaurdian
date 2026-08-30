@@ -155,7 +155,51 @@ class ThreatService:
                     }
                 )
 
-        return indicators
+        normalized_log["ioc_matches"] = indicators
+
+        score = 0
+        tags = []
+
+        for indicator in indicators:
+            ind_type = indicator["type"]
+            severity = indicator["severity"].upper()
+
+            multiplier = 1.0
+            if severity == "CRITICAL":
+                multiplier = 1.0
+            elif severity == "HIGH":
+                multiplier = 0.8
+            elif severity == "MEDIUM":
+                multiplier = 0.5
+            elif severity == "LOW" or severity == "INFO":
+                multiplier = 0.2
+
+            if ind_type == "IP":
+                score += int(50 * multiplier)
+                tags.append("MALICIOUS_IP")
+            elif ind_type == "DOMAIN":
+                score += int(40 * multiplier)
+                tags.append("MALICIOUS_DOMAIN")
+            elif ind_type == "USERNAME":
+                score += int(20 * multiplier)
+                tags.append("SUSPICIOUS_USERNAME")
+
+        if score >= 80:
+            level = "CRITICAL"
+        elif score >= 60:
+            level = "HIGH"
+        elif score >= 30:
+            level = "MEDIUM"
+        elif score > 0:
+            level = "LOW"
+        else:
+            level = "NONE"
+
+        return {
+            "threat_score": score,
+            "threat_level": level,
+            "threat_tags": tags
+        }
 
 
 threat_service = ThreatService()

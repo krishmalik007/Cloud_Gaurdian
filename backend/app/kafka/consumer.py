@@ -5,7 +5,7 @@ from confluent_kafka import Consumer
 from app.config import get_settings
 from app.logger import logger
 from app.parser.parser import log_parser
-from app.normalizer.normalizer import log_normalizer
+from app.normalizer.factory import normalizer_factory
 
 settings = get_settings()
 
@@ -63,7 +63,9 @@ class KafkaConsumerService:
                     logger.info(f"Parsed Log: {parsed_log}")
 
                     # Step 3: Normalize the parsed log
-                    normalized_log = log_normalizer.normalize(parsed_log)
+                    provider = parsed_log.get("provider", "")
+                    normalizer = normalizer_factory.get_normalizer(provider)
+                    normalized_log = normalizer.normalize(parsed_log)
 
                     logger.info(f"Normalized Log: {normalized_log}")
 

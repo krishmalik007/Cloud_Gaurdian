@@ -147,7 +147,7 @@ class IOCRepository:
             body={
                 "query": {
                     "term": {
-                        "value.keyword": value
+                        "value": value
                     }
                 }
             }

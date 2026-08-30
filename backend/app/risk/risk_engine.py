@@ -10,7 +10,12 @@ class RiskEngine:
     - IOC matches
     """
 
-    def calculate_risk(self, normalized_log: dict, alerts: list):
+    def calculate_risk(self, normalized_log: dict | list, alerts: list = None):
+        if isinstance(normalized_log, list):
+            alerts = normalized_log
+            normalized_log = {}
+        if alerts is None:
+            alerts = []
 
         score = 0
 
@@ -64,7 +69,9 @@ class RiskEngine:
 
         return {
             "score": score,
-            "level": level
+            "level": level,
+            "alert_count": len(alerts),
+            "alerts": alerts
         }
 
 

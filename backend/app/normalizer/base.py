@@ -14,6 +14,47 @@ class BaseNormalizer:
 
     EVENT_RULES = {
 
+        "ROOT_LOGIN": [
+            r"\broot.?login\b",
+            r"\broot.?usage\b"
+        ],
+
+        "LOGIN_SUCCESS": [
+            r"\blogin.?success\b",
+            r"\bsuccessful.?login\b",
+            r"\bconsole.?login\b"
+        ],
+
+        "CREATE_ADMIN_USER": [
+            r"\bcreate.?admin\b",
+            r"\bcreate.?admin.?user\b"
+        ],
+
+        "AUDIT_LOGGING_DISABLED": [
+            r"\baudit.?logging.?disabled\b",
+            r"\bdisable.?logging\b"
+        ],
+
+        "ENCRYPTION_DISABLED": [
+            r"\bencryption.?disabled\b",
+            r"\bdisable.?encryption\b"
+        ],
+
+        "PUBLIC_BUCKET_CREATED": [
+            r"\bpublic.?bucket\b",
+            r"\bmake.?bucket.?public\b"
+        ],
+
+        "SECURITY_GROUP_OPEN": [
+            r"\bsecurity.?group.?open\b",
+            r"\bopen.?security.?group\b"
+        ],
+
+        "ATTACH_ADMIN_POLICY": [
+            r"\battach.?admin\b",
+            r"\bprivilege.?escalation\b"
+        ],
+
         "LOGIN": [
 
             r"\blog.?in\b",
@@ -24,11 +65,8 @@ class BaseNormalizer:
             r"\bauthentication\b",
             r"\bauthenticated\b",
             r"\bauthenticate\b",
-            r"\bconsole.?login\b",
             r"\bssh\b",
             r"\baccepted password\b",
-            r"\bsuccessful login\b",
-            r"\blogin success\b",
             r"\buser login\b"
 
         ],

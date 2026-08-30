@@ -1,0 +1,233 @@
+================================================================================
+                    CLOUDGUARDIAN - COMPLETE ARCHITECTURE & WORKING
+================================================================================
+
+CloudGuardian is a modern Multi-Cloud Security Operations Center (SOC) and 
+Security Information and Event Management (SIEM) platform.
+
+Its main purpose is to ingest security logs from different cloud providers (such as AWS,
+Azure, and GCP), normalize them into a uniform structure, analyze them using a
+correlation engine and threat intelligence feeds, calculate dynamic risk scores, 
+and display real-time insights on a unified dashboard.
+
+================================================================================
+1. FULL TECH STACK & COMPONENTS
+================================================================================
+
+CloudGuardian uses a decoupled microservice-like architecture composed of:
+1. Infrastructural Services (Docker-Compose)
+2. FastAPI Backend Application (Python)
+3. Vite + React Frontend Application (JavaScript)
+
+--------------------------------------------------------------------------------
+A. DOCKER INFRASTRUCTURE SERVICES
+--------------------------------------------------------------------------------
+Managed via docker-compose.yml, these run as background containerized daemons:
+
+• Apache Kafka (Port 9092):
+  Acts as a high-throughput message streaming queue. It allows the ingestion of
+  thousands of events per second asynchronously. Logs are queued up in Kafka topics
+  (e.g., 'cloud_logs') and processed sequentially by consumers to avoid overloading
+  the processing pipeline.
+
+• OpenSearch (Port 9200):
+  A search and analytics database engine. It acts as the primary datastore for all
+  indexed entities in CloudGuardian, including:
+  - User accounts and credentials
+  - Generated security incidents
+  - System audit logs
+  - Indicators of Compromise (IOC) databases
+
+--------------------------------------------------------------------------------
+B. BACKEND (FastAPI + Python)
+--------------------------------------------------------------------------------
+The backend is written in Python using FastAPI, known for high performance and
+automatic OpenAPI documentation generation.
+
+Backend Packages (defined in requirements.txt):
+• fastapi & uvicorn: Serves RESTful APIs.
+• pydantic & pydantic-settings: Validates incoming request payloads and manages configurations.
+• confluent-kafka: Connects backend to the Kafka message stream.
+• opensearch-py: Communicates with OpenSearch for indexing and querying.
+• PyJWT & bcrypt: Secures the API via JSON Web Tokens (JWT) and bcrypt password hashing.
+• pytest & httpx: Framework for automated testing and endpoint verification.
+
+--------------------------------------------------------------------------------
+C. FRONTEND (React + Vite)
+--------------------------------------------------------------------------------
+The frontend is a single-page application built on React, configured via Vite:
+
+• React Router: For route guarding and multi-page navigation.
+• TanStack React Query: Fetches and caches data automatically, refreshing pages without manual reloads.
+• Tailwind CSS: Handles visual styles and responsive grids.
+• Chart.js & React-Chartjs-2: Renders dynamic security graphs, risk distributions, and statistics.
+• Framer Motion: Adds micro-animations for interactive transitions.
+• React Hook Form & Zod: Handles forms, login validation, and schema validation.
+
+================================================================================
+2. STEP-BY-STEP LOG INGESTION & PIPELINE FLOW
+================================================================================
+
+When a cloud log is uploaded or received, it travels through the following sequence:
+
+Raw Log Ingestion
+   │
+   ▼
+[Step 1] Provider Detection (AWS, Azure, GCP)
+   │
+   ▼
+[Step 2] Normalization (Standardized Schema)
+   │
+   ▼
+[Step 3] Threat Intelligence Check (IP / Domain / User Lookup against IOCs)
+   │
+   ▼
+[Step 4] Correlation Engine (EventStore & Correlation Rules)
+   │
+   ▼
+[Step 5] Risk Engine (Points calculation based on matches and threat scores)
+   │
+   ▼
+[Step 6] Alert Engine (Incident payload creation)
+   │
+   ▼
+OpenSearch Indexing
+   │
+   ▼
+React Query UI Update (Security Dashboard)
+
+--------------------------------------------------------------------------------
+DETAILED PIPELINE ANALYSIS
+--------------------------------------------------------------------------------
+
+1. PROVIDER DETECTION:
+   - Extract fields like 'provider', 'cloud', 'vendor', or 'platform'.
+   - Returns normalized provider names (AWS, AZURE, GCP).
+
+2. LOG NORMALIZATION (app/normalizer/):
+   - Maps provider-specific terminology to standard events.
+   - For example: AWS 'ConsoleLogin', Azure 'Microsoft.Authorization/Login', and GCP 
+     'google.login' are normalized to a uniform 'LOGIN_SUCCESS' event.
+   - Uses regex rules defined in BaseNormalizer to classify event types (e.g., FAILED_LOGIN,
+     ROOT_LOGIN, CREATE_ADMIN_USER, AUDIT_LOGGING_DISABLED, PUBLIC_BUCKET_CREATED).
+   - Generates a standardized schema dictionary containing:
+     { provider, username, event_name, event_type, source_ip, event_time, region, raw_log }
+
+3. THREAT INTELLIGENCE CHECK (app/threat_intelligence/):
+   - Compares the log's username, source IP, and domains with the Indicators of Compromise (IOC) list.
+   - Calculates a threat score and threat level (LOW, MEDIUM, HIGH, CRITICAL).
+   - Appends threat tags (e.g., 'malicious_ip', 'known_attacker').
+
+4. CORRELATION ENGINE (app/correlation/):
+   - Uses an in-memory 'EventStore' to keep track of recent actions per IP or username.
+   - Runs rules over incoming normalized events to find malicious patterns:
+     * Authentication Rules: Detect brute force login attempts, multiple failed logins, 
+       logins outside business hours, or concurrent sessions.
+     * IAM Rules: Detect administrative policy attachments, root logins, or privilege escalation.
+     * Resource Rules: Detect creation of public storage buckets, open database ports, or public security groups.
+     * Data Rules: Detect large file downloads or data exfiltration events.
+     * Configuration Rules: Detect disabled logging/auditing or encryption.
+
+5. RISK ENGINE (app/risk/):
+   - Translates matched correlation rules and threat scores into points.
+   - Normalizes points into a unified risk score from 0 to 100:
+     - 0 to 39: LOW severity
+     - 40 to 69: MEDIUM severity
+     - 70 to 89: HIGH severity
+     - 90 to 100: CRITICAL severity
+
+6. ALERT ENGINE (app/alerts/):
+   - Packages the normalized event metadata, alerts generated, risk score, severity classification,
+     and timestamps into a unified Security Incident structure.
+   - Passes the incident to the OpenSearch repository to index it immediately.
+
+================================================================================
+3. FRONTEND ARCHITECTURE & DIRECTORY STRUCTURE
+================================================================================
+
+The React client located in `frontend/src` coordinates client-side operation:
+
+• context/ (AuthContext & ThemeContext):
+  Manages login session state, active tokens, roles (ADMIN/ANALYST), and layout theme (dark/light).
+
+• layouts/ (DashboardLayout & AuthLayout):
+  Renders persistent headers, navigation sidebars, user details, and notification toasts.
+
+• pages/ (Dashboard, Incidents, UploadLogs, IOCManagement, ThreatCenter, Users, AuditLogs):
+  - Dashboard: Renders KPI statistics cards, charts, provider distributions, and system health status.
+  - Incidents: Lists all security alerts with search, status filters, priority metrics, and detail views.
+  - Upload Logs: Interface to paste or upload JSON formatted raw cloud logs to test the parser.
+  - IOC Management: Allows adding/removing malicious IPs, users, and domains from threat intelligence feeds.
+  - Threat Lookup: Domain/IP/User reputation query tool.
+  - Users & Audit Logs: Admin-only portals for managing dashboard users and monitoring actions.
+
+================================================================================
+4. HOW TO RUN AND VERIFY IT IS WORKING
+================================================================================
+
+To run CloudGuardian locally and verify that all services are working, perform the
+following steps:
+
+--------------------------------------------------------------------------------
+STEP 1: Verify Infrastructure Services (Docker)
+--------------------------------------------------------------------------------
+Ensure Docker is installed and running. Start the Kafka and OpenSearch services:
+
+  cd CloudGuardian
+  docker compose up -d
+
+Verify the containers are running successfully:
+
+  docker ps
+
+You should see 'kafka' (on port 9092) and 'opensearch' (on port 9200) running.
+
+--------------------------------------------------------------------------------
+STEP 2: Run the FastAPI Backend
+--------------------------------------------------------------------------------
+Navigate to the backend directory, install Python requirements, and launch uvicorn:
+
+  cd backend
+  pip install -r requirements.txt
+  python -m uvicorn app.main:app --host 127.0.0.1 --port 8000
+
+Check the logs. You should see a message stating:
+"Connected to OpenSearch successfully."
+"Backend is ready to receive requests."
+
+--------------------------------------------------------------------------------
+STEP 3: Run the Vite Frontend
+--------------------------------------------------------------------------------
+Open a separate terminal window, navigate to the frontend directory, install npm packages,
+and start the React development server:
+
+  cd frontend
+  npm install
+  npm run dev
+
+The React client will launch. By default, it is served on:
+http://localhost:5173
+
+--------------------------------------------------------------------------------
+STEP 4: Test and Verify the Application
+--------------------------------------------------------------------------------
+1. Access the web interface at http://localhost:5173.
+2. Sign up / Register an account, then log in.
+3. Go to the "Upload Logs" section in the navigation menu.
+4. Copy/paste a sample JSON log (e.g. simulating a security event):
+   Example AWS CloudTrail Log:
+   {
+     "provider": "AWS",
+     "eventName": "ConsoleLogin",
+     "sourceIPAddress": "198.51.100.1",
+     "awsRegion": "us-east-1",
+     "userIdentity": {
+       "userName": "malicious_user"
+     },
+     "eventTime": "2026-08-24T12:00:00Z"
+   }
+5. Click "Submit".
+6. Navigate to the "Dashboard" and "Incidents" pages. You will see that a new incident
+   has been generated, risk-scored, threat-assessed, and stored in OpenSearch.
+7. Verification complete. The pipeline works end-to-end!
+================================================================================

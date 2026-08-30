@@ -27,6 +27,6 @@ stored = incident_repository.get_incident(
 
 print("\nRetrieved Incident")
 
-print(stored["_source"])
+print(stored)
 
 print("\nRepository Test Passed")
