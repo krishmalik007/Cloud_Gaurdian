@@ -6,6 +6,7 @@ from app.config import get_settings
 from app.logger import logger
 from app.parser.parser import log_parser
 from app.normalizer.factory import normalizer_factory
+from app.utils.log_sanitizer import redact_credentials
 
 settings = get_settings()
 
@@ -55,12 +56,11 @@ class KafkaConsumerService:
                         message.value().decode("utf-8")
                     )
 
-                    logger.info(f"Received Log: {log_data}")
+                    # Log a sanitized copy — credentials are never printed
+                    logger.info(f"Received Log: {redact_credentials(log_data)}")
 
                     # Step 2: Parse the log
                     parsed_log = log_parser.parse(log_data)
-
-                    logger.info(f"Parsed Log: {parsed_log}")
 
                     # Step 3: Normalize the parsed log
                     provider = parsed_log.get("provider", "")

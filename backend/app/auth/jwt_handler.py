@@ -4,15 +4,16 @@ from typing import Optional
 import jwt
 from jwt.exceptions import InvalidTokenError
 
-# ==========================================
-# JWT Configuration
-# ==========================================
+from app.config import get_settings
 
-SECRET_KEY = "cloudguardian-super-secret-key-change-in-production"
-ALGORITHM = "HS256"
+# All JWT parameters are read from the .env / Settings object.
+# Nothing is hardcoded here — secrets must never appear in source code.
+_settings = get_settings()
 
-ACCESS_TOKEN_EXPIRE_MINUTES = 15
-REFRESH_TOKEN_EXPIRE_DAYS = 7
+SECRET_KEY: str = _settings.JWT_SECRET_KEY
+ALGORITHM: str = _settings.JWT_ALGORITHM
+ACCESS_TOKEN_EXPIRE_MINUTES: int = _settings.JWT_EXPIRE_MINUTES
+REFRESH_TOKEN_EXPIRE_DAYS: int = _settings.JWT_REFRESH_TOKEN_EXPIRE_DAYS
 
 
 # ==========================================
@@ -24,7 +25,11 @@ def create_access_token(
     expires_delta: Optional[timedelta] = None
 ):
     """
-    Generate JWT Access Token.
+    Generate a JWT Access Token.
+
+    Embeds ``"type": "access"`` so the backend can distinguish it from
+    a refresh token.  Access tokens expire after ACCESS_TOKEN_EXPIRE_MINUTES
+    (configured via JWT_EXPIRE_MINUTES in .env).
     """
 
     to_encode = data.copy()
@@ -56,7 +61,12 @@ def create_access_token(
 
 def create_refresh_token(data: dict):
     """
-    Generate JWT Refresh Token.
+    Generate a JWT Refresh Token.
+
+    Embeds ``"type": "refresh"`` so it cannot be accepted by the
+    ``verify_access_token`` guard on protected endpoints.
+    Refresh tokens expire after REFRESH_TOKEN_EXPIRE_DAYS
+    (configured via JWT_REFRESH_TOKEN_EXPIRE_DAYS in .env).
     """
 
     to_encode = data.copy()
@@ -78,19 +88,22 @@ def create_refresh_token(data: dict):
 
 
 # ==========================================
-# Verify Token
+# Verify Token (base — decodes any token)
 # ==========================================
 
 def verify_token(token: str):
-
+    """
+    Decode and verify the JWT signature and expiry.
+    Returns the payload dict on success, None on any error.
+    Errors are swallowed intentionally — callers use the None return
+    to raise a generic 401 so token internals are not leaked.
+    """
     try:
-
         payload = jwt.decode(
             token,
             SECRET_KEY,
             algorithms=[ALGORITHM]
         )
-
         return payload
 
     except InvalidTokenError:
@@ -102,7 +115,11 @@ def verify_token(token: str):
 # ==========================================
 
 def verify_access_token(token: str):
-
+    """
+    Verify signature, expiry, AND that the token type is "access".
+    A refresh token will return None here, ensuring it cannot be used
+    as an access token on protected endpoints.
+    """
     payload = verify_token(token)
 
     if not payload:
@@ -119,7 +136,11 @@ def verify_access_token(token: str):
 # ==========================================
 
 def verify_refresh_token(token: str):
-
+    """
+    Verify signature, expiry, AND that the token type is "refresh".
+    An access token will return None here, ensuring the /auth/refresh
+    endpoint cannot be abused with a valid access token.
+    """
     payload = verify_token(token)
 
     if not payload:

@@ -1,5 +1,5 @@
 from collections import defaultdict
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 
 class EventStore:
@@ -24,9 +24,9 @@ class EventStore:
                 try:
                     event["timestamp"] = datetime.fromisoformat(event_time.replace("Z", "+00:00").replace("+00:00", "")[:19])
                 except Exception:
-                    event["timestamp"] = datetime.utcnow()
+                    event["timestamp"] = datetime.now(timezone.utc)
             else:
-                event["timestamp"] = datetime.utcnow()
+                event["timestamp"] = datetime.now(timezone.utc)
 
         username = event.get("username", "UNKNOWN")
 

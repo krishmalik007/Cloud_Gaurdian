@@ -4,7 +4,8 @@ from app.auth.dependencies import get_current_user
 from app.schemas.auth import (
     UserRegister,
     UserLogin,
-    RefreshTokenRequest
+    RefreshTokenRequest,
+    RefreshTokenResponse
 )
 from app.services.auth_service import auth_service
 
@@ -33,7 +34,7 @@ def login(credentials: UserLogin):
 # ------------------------------------
 # Refresh Access Token
 # ------------------------------------
-@router.post("/refresh")
+@router.post("/refresh", response_model=RefreshTokenResponse)
 def refresh_token(request: RefreshTokenRequest):
     return auth_service.refresh_access_token(request)
 

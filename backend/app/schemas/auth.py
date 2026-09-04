@@ -30,12 +30,21 @@ class RefreshTokenRequest(BaseModel):
 
 
 # ------------------------------------
-# Token Response
+# Token Response (login)
 # ------------------------------------
 class TokenResponse(BaseModel):
     access_token: str
     refresh_token: str
     token_type: str = "bearer"
+
+
+# ------------------------------------
+# Refresh Token Response
+# ------------------------------------
+class RefreshTokenResponse(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
+
 
 
 # ------------------------------------
