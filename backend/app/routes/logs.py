@@ -64,5 +64,5 @@ async def process_cloud_log(
 
         raise HTTPException(
             status_code=500,
-            detail=str(e)
+            detail="An internal error occurred."
         )

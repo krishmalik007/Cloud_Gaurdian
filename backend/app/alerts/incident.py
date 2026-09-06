@@ -22,6 +22,18 @@ class Incident:
     alerts: list
 
     created_at: str
+    
+    event_summary: dict = None
+    
+    raw_log: dict = None
+    
+    analyst_attention: str = "NOT REQUIRED"
+    
+    xdr_assessment: str = "No immediate security concern identified."
+    
+    notes: list = None
+    
+    updated_at: str = None
 
     def to_dict(self):
 

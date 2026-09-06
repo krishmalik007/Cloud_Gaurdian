@@ -17,13 +17,15 @@ def mock_dependencies():
     with patch('app.storage.incident_repository.IncidentRepository.save_incident') as mock_save:
         with patch('app.pipeline.incident_pipeline.IncidentPipeline.process_event') as mock_pipeline:
             with patch('app.storage.user_repository.UserRepository.get_user_by_id') as mock_get_user:
-                # We don't want the actual background tasks running for unit tests
-                mock_get_user.return_value = {"user_id": "test", "role": "ANALYST"}
-                yield {
-                    'save_incident': mock_save,
-                    'process_event': mock_pipeline,
-                    'get_user_by_id': mock_get_user
-                }
+                with patch('app.services.aws_sqs_consumer.sqs_consumer.start') as mock_sqs_start:
+                    # We don't want the actual background tasks running for unit tests
+                    mock_get_user.return_value = {"user_id": "test", "role": "ANALYST"}
+                    yield {
+                        'save_incident': mock_save,
+                        'process_event': mock_pipeline,
+                        'get_user_by_id': mock_get_user,
+                        'sqs_start': mock_sqs_start
+                    }
 
 
 @pytest.fixture

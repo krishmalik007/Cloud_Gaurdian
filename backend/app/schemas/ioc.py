@@ -1,20 +1,20 @@
 from datetime import datetime
-from typing import Optional
+from typing import Optional, Literal
 
 from pydantic import BaseModel, Field
 
 
 class IOCCreate(BaseModel):
-    type: str = Field(..., examples=["IP", "DOMAIN", "USERNAME"])
+    type: Literal["IP", "DOMAIN", "USERNAME"] = Field(..., examples=["IP", "DOMAIN", "USERNAME"])
     value: str
-    severity: str = "MEDIUM"
+    severity: Literal["LOW", "MEDIUM", "HIGH", "CRITICAL"] = "MEDIUM"
     source: str = "MANUAL"
     description: Optional[str] = None
     enabled: bool = True
 
 
 class IOCUpdate(BaseModel):
-    severity: Optional[str] = None
+    severity: Optional[Literal["LOW", "MEDIUM", "HIGH", "CRITICAL"]] = None
     description: Optional[str] = None
     enabled: Optional[bool] = None
 

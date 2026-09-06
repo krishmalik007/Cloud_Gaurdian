@@ -1,11 +1,20 @@
 import { useQuery } from '@tanstack/react-query';
 import { dashboardService } from '../services/dashboardService';
 
+const getRefetchInterval = () => {
+  try {
+    const prefs = JSON.parse(localStorage.getItem('cg_settings_preferences') || '{"autoRefresh": true}');
+    if (prefs.autoRefresh === false) return false;
+  } catch(e) {}
+  const val = parseInt(localStorage.getItem('cg_settings_refresh') || '30', 10);
+  return val > 0 ? val * 1000 : false;
+};
+
 export const useDashboardSummary = () => {
   return useQuery({
     queryKey: ['dashboard', 'summary'],
     queryFn: dashboardService.getSummary,
-    refetchInterval: 15000, // refresh every 15s for live SOC updates
+    refetchInterval: getRefetchInterval(),
   });
 };
 
@@ -13,7 +22,7 @@ export const useDashboardProviderStats = () => {
   return useQuery({
     queryKey: ['dashboard', 'provider-stats'],
     queryFn: dashboardService.getProviderStats,
-    refetchInterval: 30000,
+    refetchInterval: getRefetchInterval(),
   });
 };
 
@@ -21,7 +30,7 @@ export const useDashboardRiskDistribution = () => {
   return useQuery({
     queryKey: ['dashboard', 'risk-distribution'],
     queryFn: dashboardService.getRiskDistribution,
-    refetchInterval: 30000,
+    refetchInterval: getRefetchInterval(),
   });
 };
 
@@ -29,7 +38,7 @@ export const useDashboardRecentIncidents = (limit = 10) => {
   return useQuery({
     queryKey: ['dashboard', 'recent-incidents', limit],
     queryFn: () => dashboardService.getRecentIncidents(limit),
-    refetchInterval: 15000,
+    refetchInterval: getRefetchInterval(),
   });
 };
 
@@ -37,7 +46,7 @@ export const useDashboardHealth = () => {
   return useQuery({
     queryKey: ['dashboard', 'health'],
     queryFn: dashboardService.getHealth,
-    refetchInterval: 30000,
+    refetchInterval: getRefetchInterval(),
   });
 };
 

@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, EmailStr
 
 
 # ------------------------------------
@@ -9,9 +9,8 @@ from pydantic import BaseModel, Field
 # ------------------------------------
 class UserRegister(BaseModel):
     username: str = Field(..., min_length=3, max_length=50)
-    email: str
+    email: EmailStr
     password: str = Field(..., min_length=8)
-    role: str = "ANALYST"
 
 
 # ------------------------------------

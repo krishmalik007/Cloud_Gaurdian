@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
 import { useIncidentsSearch, useDeleteIncident } from '../../hooks/useIncidents';
 import { useAuth } from '../../context/AuthContext';
 import { ROLES } from '../../constants/roles';
@@ -7,7 +6,7 @@ import { PageHeader } from '../../components/layout/PageHeader';
 import { Card } from '../../components/ui/Card';
 import { Pagination } from '../../components/ui/Pagination';
 import { toast } from 'react-toastify';
-import API from '../../services/api';
+import { useDashboardSummary, useDashboardRiskDistribution } from '../../hooks/useDashboard';
 
 // Components
 import IncidentToolbar from '../../components/incidents/IncidentToolbar';
@@ -15,22 +14,37 @@ import IncidentTable from '../../components/incidents/IncidentTable';
 import IncidentDrawer from '../../components/incidents/IncidentDrawer';
 import DeleteIncidentDialog from '../../components/incidents/DeleteIncidentDialog';
 import EmptyIncident from '../../components/incidents/EmptyIncident';
-import IncidentSeverityBadge from '../../components/incidents/IncidentSeverityBadge';
-import IncidentStatusBadge from '../../components/incidents/IncidentStatusBadge';
 
 export default function IncidentPage() {
   const { user } = useAuth();
   
   // State for search and filters
-  const [filters, setFilters] = useState({
-    provider: null,
-    risk_level: null,
-    status: null,
-    username: null,
-    page: 1,
-    size: 10,
-    sort_by: 'created_at',
-    sort_order: 'desc',
+  const [filters, setFilters] = useState(() => {
+    let defaultStatus = null;
+    let defaultRisk = null;
+    try {
+      const prefs = JSON.parse(localStorage.getItem('cg_settings_preferences') || '{}');
+      if (prefs.defaultView === 'open') {
+        defaultStatus = 'OPEN';
+      } else if (prefs.defaultView === 'critical') {
+        defaultRisk = 'HIGH,CRITICAL';
+      }
+
+      if (prefs.showLowRisk === false && !defaultRisk) {
+        defaultRisk = 'MEDIUM,HIGH,CRITICAL';
+      }
+    } catch (e) {}
+
+    return {
+      provider: null,
+      risk_level: defaultRisk,
+      status: defaultStatus,
+      username: null,
+      page: 1,
+      size: 10,
+      sort_by: 'created_at',
+      sort_order: 'desc',
+    };
   });
 
   // Drawer and Delete dialog states
@@ -44,22 +58,10 @@ export default function IncidentPage() {
   const deleteMutation = useDeleteIncident();
 
   // Load summary statistics for the headers
-  const { data: summaryData, isLoading: loadingSummary } = useQuery({
-    queryKey: ['dashboard', 'summary-statistics'],
-    queryFn: async () => {
-      const response = await API.get('/dashboard/summary');
-      return response.data;
-    },
-  });
+  const { data: summaryData, isLoading: loadingSummary } = useDashboardSummary();
 
   // Load risk distribution for exact counts
-  const { data: riskData } = useQuery({
-    queryKey: ['dashboard', 'risk-distribution-stats'],
-    queryFn: async () => {
-      const response = await API.get('/dashboard/risk-distribution');
-      return response.data;
-    },
-  });
+  const { data: riskData } = useDashboardRiskDistribution();
 
   const handlePageChange = (newPage) => {
     setFilters((prev) => ({
@@ -93,7 +95,8 @@ export default function IncidentPage() {
   // Calculate statistics
   const totalCount = summaryData?.total_incidents || 0;
   const openCount = summaryData?.open_incidents || 0;
-  const resolvedCount = summaryData?.closed_incidents || 0;
+  const investigatingCount = summaryData?.investigating_incidents || 0;
+  const resolvedCount = summaryData?.resolved_incidents || 0;
   const highCount = summaryData?.high_risk || 0;
   
   const criticalCount = riskData?.find(
@@ -131,8 +134,7 @@ export default function IncidentPage() {
         </Card>
         <Card title="Investigating" subtitle="Under analysis" className="!p-4 bg-surface/30 border-l-2 border-l-orange">
           <span className="text-xl font-extrabold text-orange block mt-1">
-            {/* Investigating state is derived from Open incidents without Closed status */}
-            {loadingSummary ? '...' : Math.max(0, openCount - criticalCount)}
+            {loadingSummary ? '...' : investigatingCount}
           </span>
         </Card>
         <Card title="Resolved" subtitle="Remediated issues" className="!p-4 bg-surface/30 border-l-2 border-l-green">

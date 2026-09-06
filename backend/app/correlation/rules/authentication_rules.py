@@ -90,6 +90,7 @@ def check_multiple_failed_logins(recent_events, current_event):
     current_time = current_event["timestamp"]
 
     failed_count = 0
+    matched_events = []
 
     for event in recent_events:
 
@@ -103,6 +104,7 @@ def check_multiple_failed_logins(recent_events, current_event):
 
         if current_time - event_time <= window:
             failed_count += 1
+            matched_events.append(event)
 
     if failed_count == threshold:
 
@@ -117,7 +119,8 @@ def check_multiple_failed_logins(recent_events, current_event):
                     f"{failed_count} failed login attempts "
                     f"detected within {config['window_minutes']} minutes."
                 ),
-                event=current_event
+                event=current_event,
+                related_events=matched_events
             ).to_dict()
 
         )
@@ -145,6 +148,7 @@ def check_brute_force(recent_events, current_event):
     current_time = current_event["timestamp"]
 
     failed_count = 0
+    matched_events = []
 
     for event in recent_events:
 
@@ -158,6 +162,7 @@ def check_brute_force(recent_events, current_event):
 
         if current_time - event_time <= window:
             failed_count += 1
+            matched_events.append(event)
 
     if failed_count == threshold:
 
@@ -172,7 +177,8 @@ def check_brute_force(recent_events, current_event):
                     f"{failed_count} failed login attempts "
                     f"detected within {config['window_minutes']} minutes."
                 ),
-                event=current_event
+                event=current_event,
+                related_events=matched_events
             ).to_dict()
 
         )

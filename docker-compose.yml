@@ -18,6 +18,24 @@ services:
       KAFKA_LOG_DIRS: /tmp/kraft-combined-logs
       CLUSTER_ID: MkU3OEVBNTcwNTJENDM2Qk
 
+  kafka-setup:
+    image: apache/kafka:3.9.1
+    container_name: kafka-setup
+    network_mode: "service:kafka"
+    command: |
+      bash -c "
+      echo 'Waiting for Kafka to be ready...'
+      /opt/kafka/bin/kafka-topics.sh --bootstrap-server kafka:9092 --list
+      while [ $$? -ne 0 ]; do
+        sleep 2
+        /opt/kafka/bin/kafka-topics.sh --bootstrap-server kafka:9092 --list
+      done
+      echo 'Creating kafka topics...'
+      /opt/kafka/bin/kafka-topics.sh --bootstrap-server kafka:9092 --create --if-not-exists --topic cloud_logs --replication-factor 1 --partitions 1
+      echo 'Topics created successfully.'
+      "
+
+
   opensearch:
     image: opensearchproject/opensearch:2.11.1
     container_name: opensearch
@@ -25,15 +43,27 @@ services:
       discovery.type: single-node
       bootstrap.memory_lock: "true"
       OPENSEARCH_JAVA_OPTS: "-Xms512m -Xmx512m"
-      plugins.security.disabled: "true"
+      OPENSEARCH_INITIAL_ADMIN_PASSWORD: ${OPENSEARCH_ADMIN_PASSWORD}
+      plugins.security.ssl.transport.pemcert_filepath: /usr/share/opensearch/config/certs/node.pem
+      plugins.security.ssl.transport.pemkey_filepath: /usr/share/opensearch/config/certs/node-key.pem
+      plugins.security.ssl.transport.pemtrustedcas_filepath: /usr/share/opensearch/config/certs/root-ca.pem
+      plugins.security.ssl.transport.enforce_hostname_verification: "false"
+      plugins.security.ssl.http.enabled: "true"
+      plugins.security.ssl.http.pemcert_filepath: /usr/share/opensearch/config/certs/node.pem
+      plugins.security.ssl.http.pemkey_filepath: /usr/share/opensearch/config/certs/node-key.pem
+      plugins.security.ssl.http.pemtrustedcas_filepath: /usr/share/opensearch/config/certs/root-ca.pem
+      plugins.security.allow_unsafe_democertificates: "true"
+      plugins.security.allow_default_init_securityindex: "true"
     ulimits:
       memlock:
         soft: -1
         hard: -1
     ports:
-      - "9200:9200"
+      - "127.0.0.1:9200:9200"
     volumes:
-      - opensearch-data:/usr/share/opensearch/data
+      - opensearch-secure-data:/usr/share/opensearch/data
+      - ./certs/opensearch:/usr/share/opensearch/config/certs:ro
 
 volumes:
   opensearch-data:
+  opensearch-secure-data:

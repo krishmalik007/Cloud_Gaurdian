@@ -51,10 +51,22 @@ export default function UsersTable({
       ),
     },
     {
-      header: 'Status',
+      header: 'Account Status',
       accessor: 'enabled',
       render: (item) => (
         <UserStatusBadge enabled={item.enabled} size="sm" />
+      ),
+    },
+    {
+      header: 'Session',
+      accessor: 'is_online',
+      render: (item) => (
+        <div className="flex items-center gap-1.5">
+          <div className={`w-2 h-2 rounded-full ${item.is_online ? 'bg-green animate-pulse' : 'bg-surface-border'}`}></div>
+          <span className={`text-xs font-medium ${item.is_online ? 'text-green' : 'text-text-muted'}`}>
+            {item.is_online ? 'Online' : 'Offline'}
+          </span>
+        </div>
       ),
     },
     {

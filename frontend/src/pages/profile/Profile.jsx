@@ -63,38 +63,42 @@ export default function Profile() {
           </div>
         </Card>
 
-        {/* Security Credentials & API keys */}
+        {/* Analyst Information */}
         <div className="lg:col-span-2 flex flex-col gap-6">
-          <Card title="Security Credentials" subtitle="Access tokens and configuration" className="bg-surface/30">
+          <Card title="Analyst Information" subtitle="Operational roles and system privileges" className="bg-surface/30">
             <div className="flex flex-col gap-5 pt-2">
-              <div className="p-4 bg-background/50 border border-border-color rounded-xl flex flex-col gap-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-text-primary flex items-center gap-2">
-                    <HiOutlineKey className="w-4 h-4 text-yellow" />
-                    Web API Access Key
-                  </span>
-                  <Badge variant="info" size="xs">Active</Badge>
+              <div className="p-5 bg-background/50 border border-border-color rounded-xl flex flex-col gap-4">
+                
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div className="flex flex-col gap-1.5">
+                    <span className="text-[10px] text-text-muted uppercase tracking-wider font-bold">Role</span>
+                    <span className="text-sm font-bold text-text-primary capitalize">{user?.role?.toLowerCase() || 'Security Analyst'}</span>
+                  </div>
+                  <div className="flex flex-col gap-1.5">
+                    <span className="text-[10px] text-text-muted uppercase tracking-wider font-bold">Access Level</span>
+                    <span className="text-sm font-bold text-text-primary">{user?.role === 'ADMIN' ? 'Administrator Privileges' : 'Analyst Privileges'}</span>
+                  </div>
+                  <div className="flex flex-col gap-1.5">
+                    <span className="text-[10px] text-text-muted uppercase tracking-wider font-bold">Session Status</span>
+                    <Badge variant="success" size="sm" className="w-max">Active</Badge>
+                  </div>
                 </div>
-                <p className="text-[11px] text-text-secondary leading-relaxed">
-                  Authentication token used to invoke the CloudGuardian FastAPI router endpoints.
-                </p>
-                <div className="bg-surface border border-border-color rounded p-2.5 font-mono text-[9px] text-text-muted select-all overflow-x-auto">
-                  {localStorage.getItem('cg_access_token') || 'Token not loaded in storage'}
-                </div>
-              </div>
 
-              <div className="flex flex-col gap-2">
-                <h4 className="text-xs font-bold text-text-primary uppercase tracking-wider">
-                  Analyst Privileges
-                </h4>
-                <ul className="list-disc pl-4 text-xs text-text-secondary flex flex-col gap-1.5 mt-1">
-                  <li>Can run real-time OSINT indicators against open databases</li>
-                  <li>Can submit cloud audit log files to trigger automated correlation pipelines</li>
-                  <li>Can view security incidents and associated logs timeline</li>
-                  {user?.role === 'ADMIN' && (
-                    <li className="text-red font-semibold">Administrator access: Can modify all system watchlists, users, and read audit trails</li>
-                  )}
-                </ul>
+                <div className="mt-2 border-t border-border-color/30 pt-4">
+                  <h4 className="text-[10px] font-bold text-text-muted uppercase tracking-wider mb-3">
+                    Responsibilities
+                  </h4>
+                  <ul className="list-disc pl-4 text-xs text-text-secondary flex flex-col gap-2">
+                    <li>Monitor and investigate security incidents</li>
+                    <li>Review correlated cloud activity</li>
+                    <li>Analyze risk and threat scores</li>
+                    <li>Review investigation notes and incident timelines</li>
+                    {user?.role === 'ADMIN' && (
+                      <li className="text-red font-semibold pt-1">Administrator access: Can modify all system watchlists, users, and read audit trails</li>
+                    )}
+                  </ul>
+                </div>
+
               </div>
             </div>
           </Card>

@@ -4,6 +4,10 @@ import { Sidebar } from '../components/layout/Sidebar';
 import { Navbar } from '../components/layout/Navbar';
 import { Footer } from '../components/layout/Footer';
 import GlobalSearch from '../components/layout/GlobalSearch';
+import { useWebSocket } from '../hooks/useWebSocket';
+import { useQueryClient } from '@tanstack/react-query';
+import { toast } from 'react-toastify';
+import { RiAlertLine } from 'react-icons/ri';
 
 export const DashboardLayout = () => {
   const [isCollapsed, setIsCollapsed] = useState(() => {
@@ -11,6 +15,32 @@ export const DashboardLayout = () => {
   });
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const queryClient = useQueryClient();
+
+  // Initialize global WebSocket connection for real-time updates across all pages
+  useWebSocket('/ws/dashboard', (data) => {
+    if (data.type === 'incident_created') {
+      const incident = data.data || {};
+      let threshold = 75;
+      try {
+        threshold = parseInt(localStorage.getItem('cg_settings_threshold') || '75', 10);
+      } catch (e) {}
+
+      if (incident.risk_score >= threshold) {
+        toast.error(`CRITICAL: New Incident Detected: ${incident.title || incident.event_name || 'Unknown'}`, {
+          icon: <RiAlertLine />,
+          autoClose: 8000,
+        });
+      } else {
+        toast.info(`New Incident Detected: ${incident.title || incident.event_name || 'Unknown'}`, {
+          autoClose: 4000,
+        });
+      }
+      // Globally invalidate caches to refresh both summary cards and incident lists
+      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+      queryClient.invalidateQueries({ queryKey: ['incidents'] });
+    }
+  });
 
   // Sync collapsed state to localStorage
   useEffect(() => {

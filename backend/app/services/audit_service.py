@@ -1,3 +1,4 @@
+import uuid
 from datetime import datetime, timezone
 
 from app.storage.audit_repository import AuditRepository
@@ -23,7 +24,7 @@ class AuditService:
         """
 
         audit_log = {
-            "audit_id": f"AUD-{int(datetime.now().timestamp())}",
+            "audit_id": f"AUD-{uuid.uuid4().hex[:8]}",
             "user_id": user_id,
             "username": username,
             "action": action,

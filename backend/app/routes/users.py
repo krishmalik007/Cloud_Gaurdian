@@ -34,7 +34,7 @@ async def get_all_users(
 
         raise HTTPException(
             status_code=500,
-            detail=str(e)
+            detail="An internal error occurred."
         )
 
 
@@ -59,7 +59,7 @@ async def get_user(
 
         raise HTTPException(
             status_code=500,
-            detail=str(e)
+            detail="An internal error occurred."
         )
 
 
@@ -89,7 +89,7 @@ async def update_role(
 
         raise HTTPException(
             status_code=500,
-            detail=str(e)
+            detail="An internal error occurred."
         )
 
 
@@ -119,7 +119,7 @@ async def update_status(
 
         raise HTTPException(
             status_code=500,
-            detail=str(e)
+            detail="An internal error occurred."
         )
 
 
@@ -147,5 +147,5 @@ async def delete_user(
 
         raise HTTPException(
             status_code=500,
-            detail=str(e)
+            detail="An internal error occurred."
         )

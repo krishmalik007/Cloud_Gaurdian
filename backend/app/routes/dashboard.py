@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 
 from app.auth.permissions import require_role
 from app.logger import logger
@@ -25,7 +25,7 @@ async def dashboard_summary(
         logger.exception("Dashboard summary failed.")
         raise HTTPException(
             status_code=500,
-            detail=str(e)
+            detail="An internal error occurred."
         )
 
 
@@ -44,7 +44,7 @@ async def provider_stats(
         logger.exception("Provider statistics failed.")
         raise HTTPException(
             status_code=500,
-            detail=str(e)
+            detail="An internal error occurred."
         )
 
 
@@ -63,13 +63,13 @@ async def risk_distribution(
         logger.exception("Risk distribution failed.")
         raise HTTPException(
             status_code=500,
-            detail=str(e)
+            detail="An internal error occurred."
         )
 
 
 @router.get("/recent-incidents")
 async def recent_incidents(
-    limit: int = 10,
+    limit: int = Query(10, ge=1, le=100),
     current_user=Depends(require_role("ADMIN", "ANALYST"))
 ):
     """
@@ -83,5 +83,21 @@ async def recent_incidents(
         logger.exception("Recent incidents failed.")
         raise HTTPException(
             status_code=500,
-            detail=str(e)
+            detail="An internal error occurred."
+        )
+
+@router.get("/active-analysts")
+async def active_analysts(
+    current_user=Depends(require_role("ADMIN", "ANALYST"))
+):
+    """
+    Retrieve active analyst accounts count.
+    """
+    try:
+        return dashboard_service.get_active_analysts_count()
+    except Exception as e:
+        logger.exception("Active analysts count failed.")
+        raise HTTPException(
+            status_code=500,
+            detail="An internal error occurred."
         )

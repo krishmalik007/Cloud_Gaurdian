@@ -14,7 +14,8 @@ class Alert:
         username,
         provider,
         description,
-        event
+        event,
+        related_events=None
     ):
 
         self.alert_type = alert_type
@@ -28,6 +29,8 @@ class Alert:
         self.description = description
 
         self.event = event
+
+        self.related_events = related_events or []
 
         self.timestamp = datetime.now(UTC).isoformat()
 
@@ -47,6 +50,8 @@ class Alert:
 
             "timestamp": self.timestamp,
 
-            "event": self.event
+            "event": self.event,
+            
+            "related_events": self.related_events
 
         }

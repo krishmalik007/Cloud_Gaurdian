@@ -1,3 +1,4 @@
+import uuid
 from datetime import datetime, timezone
 
 from fastapi import HTTPException, status
@@ -35,14 +36,14 @@ class AuthService:
                 detail="Email already registered."
             )
 
-        user_id = f"USR-{int(datetime.now().timestamp())}"
+        user_id = f"USR-{uuid.uuid4().hex[:8]}"
 
         new_user = {
             "user_id": user_id,
             "username": user.username,
             "email": user.email,
             "password": hash_password(user.password),
-            "role": user.role,
+            "role": "ANALYST",
             "enabled": True,
             "created_at": datetime.now(timezone.utc).isoformat()
         }
@@ -92,16 +93,31 @@ class AuthService:
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="User account is disabled."
             )
+            
+        session_id = str(uuid.uuid4())
 
         payload = {
             "user_id": user["user_id"],
             "email": user["email"],
-            "role": user["role"]
+            "role": user["role"],
+            "session_id": session_id
         }
 
         access_token = create_access_token(payload)
 
         refresh_token = create_refresh_token(payload)
+        
+        # Save session to OpenSearch
+        from app.auth.jwt_handler import REFRESH_TOKEN_EXPIRE_DAYS
+        from app.storage.session_repository import session_repository
+        
+        expires_at = (datetime.now(timezone.utc) + __import__("datetime").timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS)).isoformat()
+        session_repository.create_session(
+            session_id=session_id,
+            user_id=user["user_id"],
+            role=user["role"],
+            expires_at=expires_at
+        )
 
         audit_service.create_log(
             user_id=user["user_id"],
@@ -150,14 +166,19 @@ class AuthService:
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="User account is disabled."
             )
+            
+        session_id = payload.get("session_id")
+        
+        access_payload = {
+            "user_id": user["user_id"],
+            "email": user["email"],
+            "role": user["role"]
+        }
+        
+        if session_id:
+            access_payload["session_id"] = session_id
 
-        access_token = create_access_token(
-            {
-                "user_id": user["user_id"],
-                "email": user["email"],
-                "role": user["role"]
-            }
-        )
+        access_token = create_access_token(access_payload)
 
         audit_service.create_log(
             user_id=user["user_id"],
@@ -171,6 +192,17 @@ class AuthService:
             "access_token": access_token,
             "token_type": "bearer"
         }
+        
+    # ------------------------------------
+    # Logout User
+    # ------------------------------------
+    def logout_user(self, session_id: str):
+        from app.storage.session_repository import session_repository
+        
+        if session_id:
+            session_repository.delete_session(session_id)
+        
+        return {"message": "Logged out successfully"}
 
     # ------------------------------------
     # Get User

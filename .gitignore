@@ -1,6 +1,7 @@
 # ==========================
 # Python
 # ==========================
+
 __pycache__/
 *.py[cod]
 *.pyo
@@ -41,6 +42,7 @@ dist/
 # ==========================
 # React / Node
 # ==========================
+
 frontend/node_modules/
 frontend/dist/
 
@@ -52,10 +54,34 @@ yarn-error.log*
 # ==========================
 # Docker
 # ==========================
+
 *.pid
 
 # ==========================
 # Coverage Reports
 # ==========================
+
 .coverage
 htmlcov/
+
+# ==========================
+# CloudGuardian Exclusions
+# ==========================
+
+# Local environment files
+backend/.env
+
+# OpenSearch certificates and private keys
+certs/
+certs/opensearch/*key.pem
+
+# Migration / backup data
+backend/backup_*.json
+
+# Local dependency snapshot
+backend/pip_freeze.txt
+
+# Local certificate/test scripts
+generate_certs.py
+regen_certs.py
+test_eb.py

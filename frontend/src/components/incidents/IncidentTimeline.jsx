@@ -1,7 +1,7 @@
 import React from 'react';
-import { HiOutlineClock, HiOutlineCube, HiOutlineShieldCheck, HiOutlineEye } from 'react-icons/hi';
+import { HiOutlineClock, HiOutlineCube, HiOutlineShieldCheck, HiOutlineEye, HiOutlineSearch, HiOutlineCheckCircle } from 'react-icons/hi';
 
-export default function IncidentTimeline({ createdTime }) {
+export default function IncidentTimeline({ createdTime, status, notes = [], updatedAt }) {
   const steps = [
     {
       title: 'Log Ingested',
@@ -25,6 +25,37 @@ export default function IncidentTimeline({ createdTime }) {
       color: 'text-red bg-red/10 border-red/20',
     },
   ];
+
+  if (status === 'INVESTIGATING' || notes.length > 0 || status === 'RESOLVED') {
+    const investigateTime = notes.length > 0 ? notes[0].timestamp : (updatedAt || new Date().toISOString());
+    steps.push({
+      title: 'Investigation Started',
+      desc: 'Analyst began reviewing incident details and correlation events.',
+      icon: HiOutlineSearch,
+      time: investigateTime,
+      color: 'text-orange bg-orange/10 border-orange/20',
+    });
+  }
+  
+  if (notes.length > 0) {
+      steps.push({
+      title: 'Investigation Notes Added',
+      desc: `${notes.length} investigation notes were recorded by analysts.`,
+      icon: HiOutlineClock,
+      time: notes[notes.length - 1].timestamp,
+      color: 'text-purple bg-purple/10 border-purple/20',
+    });
+  }
+
+  if (status === 'RESOLVED') {
+    steps.push({
+      title: 'Incident Resolved',
+      desc: 'Analyst concluded investigation and resolved the incident.',
+      icon: HiOutlineCheckCircle,
+      time: updatedAt || new Date().toISOString(),
+      color: 'text-green bg-green/10 border-green/20',
+    });
+  }
 
   return (
     <div className="flex flex-col gap-6 relative pl-6 border-l border-border-color select-none">

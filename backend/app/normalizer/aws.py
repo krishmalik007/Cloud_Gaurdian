@@ -1,5 +1,5 @@
 from app.normalizer.base import BaseNormalizer
-from app.utils.log_sanitizer import redact_credentials
+from app.utils.redaction import redact_sensitive_data
 
 
 # ---------------------------------------------------------------------------
@@ -315,7 +315,7 @@ class AWSNormalizer(BaseNormalizer):
         # responseElements.credentials are not persisted to OpenSearch.
         # ------------------------------------------------------------------
         source_raw = log.get("raw_log", log)
-        sanitized_raw = redact_credentials(source_raw)
+        sanitized_raw = redact_sensitive_data(source_raw)
 
         normalized_log = {
             "provider": "AWS",

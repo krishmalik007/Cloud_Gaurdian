@@ -49,6 +49,7 @@ from botocore.exceptions import BotoCoreError, ClientError
 from app.config import get_settings
 from app.kafka.producer import kafka_producer
 from app.logger import logger
+from app.utils.redaction import redact_sensitive_data
 
 # Load the singleton settings object (already cached via @lru_cache)
 settings = get_settings()
@@ -272,18 +273,22 @@ class AWSSQSConsumer:
         # "provider" is what incident_pipeline uses to select the normalizer
         event_detail["provider"] = "AWS"
 
+        # Apply redaction before logging or further processing
+        sanitized_detail = redact_sensitive_data(event_detail)
+
         # Preserve top-level EventBridge envelope fields for context
         event_detail["eventbridge_source"] = body.get("source", "")
         event_detail["eventbridge_account"] = body.get("account", "")
         event_detail["eventbridge_region"] = body.get("region", "")
         event_detail["eventbridge_time"] = body.get("time", "")
 
-        event_name: str = event_detail.get("eventName", "UnknownEvent")
+        event_name: str = sanitized_detail.get("eventName", "UnknownEvent")
         event_source: str = body.get("source", "unknown")
 
         logger.info(
             f"SQS message {message_id} | "
-            f"AWS source: {event_source} | CloudTrail event: {event_name}"
+            f"AWS source: {event_source} | CloudTrail event: {event_name} | "
+            f"Sanitized Event: {sanitized_detail}"
         )
 
         # ------------------------------------------------------------------

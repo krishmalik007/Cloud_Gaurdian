@@ -23,5 +23,10 @@ class DashboardService:
         logger.info(f"Fetching {limit} recent incidents.")
         return incident_repository.get_recent_incidents(limit)
 
+    def get_active_analysts_count(self):
+        from app.storage.session_repository import session_repository
+        logger.info("Fetching active analyst sessions count.")
+        count = session_repository.count_active_analyst_users()
+        return {"count": count}
 
 dashboard_service = DashboardService()

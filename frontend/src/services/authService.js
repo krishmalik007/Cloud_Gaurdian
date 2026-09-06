@@ -15,4 +15,12 @@ export const authService = {
     const response = await API.get('/auth/me');
     return response.data;
   },
+
+  logout: async () => {
+    try {
+      await API.post('/auth/logout');
+    } catch (e) {
+      console.warn("Logout request failed or network issue", e);
+    }
+  },
 };

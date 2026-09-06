@@ -146,7 +146,7 @@ export default function UsersPage() {
     <div className="flex flex-col gap-6 w-full animate-fade-in text-left">
       <PageHeader
         title="User Administration"
-        subtitle="Manage analyst permissions, security roles, and active session status controls."
+        subtitle="Manage analyst permissions, security roles, and account status controls."
       />
 
       {/* Stats row */}

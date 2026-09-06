@@ -323,6 +323,7 @@ def check_multiple_iam_changes(recent_events, current_event):
     current_time = current_event["timestamp"]
 
     count = 0
+    matched_events = []
 
     for event in recent_events:
 
@@ -333,6 +334,7 @@ def check_multiple_iam_changes(recent_events, current_event):
             continue
 
         count += 1
+        matched_events.append(event)
 
     if count != threshold:
         return alerts
@@ -351,7 +353,9 @@ def check_multiple_iam_changes(recent_events, current_event):
 
             description=f"{threshold} IAM changes detected within {config['window_minutes']} minutes.",
 
-            event=current_event
+            event=current_event,
+            
+            related_events=matched_events
 
         ).to_dict()
 

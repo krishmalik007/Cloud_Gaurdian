@@ -13,11 +13,14 @@ class UserService:
     # Get All Users
     # ------------------------------------
     def get_all_users(self):
-
+        from app.storage.session_repository import session_repository
+        
         users = self.repository.get_all_users()
+        active_user_ids = session_repository.get_active_user_ids()
 
         for user in users:
             user.pop("password", None)
+            user["is_online"] = user["user_id"] in active_user_ids
 
         return users
 

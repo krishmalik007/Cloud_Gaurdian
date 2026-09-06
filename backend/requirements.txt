@@ -19,3 +19,6 @@ boto3>=1.34.0
 
 pytest>=8.2.2
 httpx>=0.27.0
+
+# Rate limiting for auth endpoints
+slowapi>=0.1.9

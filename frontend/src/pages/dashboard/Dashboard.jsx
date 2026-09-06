@@ -28,16 +28,16 @@ export default function Dashboard() {
     health,
     isLoading,
     isError,
+    refetchAll,
   } = useDashboard();
 
-  // Load Active Users count if current user is ADMIN
-  const { data: usersData, isLoading: loadingUsers } = useQuery({
-    queryKey: ['admin', 'users-count'],
+  // Load Active Analyst Sessions count
+  const { data: activeAnalystsData, isLoading: loadingAnalysts } = useQuery({
+    queryKey: ['dashboard', 'active-analysts'],
     queryFn: async () => {
-      const response = await API.get('/users/');
+      const response = await API.get('/dashboard/active-analysts');
       return response.data;
-    },
-    enabled: user?.role === 'ADMIN',
+    }
   });
 
   // Load IOC list for Threat Feed
@@ -49,7 +49,7 @@ export default function Dashboard() {
     },
   });
 
-  const activeUsersCount = usersData?.users?.filter((u) => u.enabled).length || 1;
+  const activeUsersCount = activeAnalystsData ? activeAnalystsData.count : 0;
   
   // Calculate specific risk counts
   const criticalCount = riskDistribution?.find(
@@ -99,11 +99,11 @@ export default function Dashboard() {
           trend={{ type: 'down', value: '8.4%' }}
         />
         <StatCard
-          title="Active Analyst Sessions"
+          title="Active Analyst Accounts"
           value={activeUsersCount}
           icon={RiUserSharedLine}
           variant="success"
-          loading={isLoading || (user?.role === 'ADMIN' && loadingUsers)}
+          loading={isLoading || loadingAnalysts}
         />
       </div>
 

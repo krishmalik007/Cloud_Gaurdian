@@ -1,19 +1,24 @@
 import React from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import { PageHeader } from '../../components/layout/PageHeader';
-import { Card } from '../../components/ui/Card';
+import IncidentDetailContent from '../../components/incidents/IncidentDetailContent';
+import { ROUTES } from '../../constants/routes';
 
 export default function IncidentDetails() {
+  const { id } = useParams();
+  const navigate = useNavigate();
+
   return (
     <div className="flex flex-col gap-6">
       <PageHeader
-        title="Incident Detail Analysis"
+        title={`Incident: ${id}`}
         subtitle="In-depth log analysis and audit timeline."
+        onBack={() => navigate(ROUTES.INCIDENTS)}
+        showBack={true}
       />
-      <Card title="Module Status" subtitle="Pending Phase 3 implementation">
-        <div className="py-12 text-center text-text-muted">
-          Detailed raw log viewers and telemetry charts will be loaded in Phase 3.
-        </div>
-      </Card>
+      <div className="bg-surface border border-border-color rounded-xl p-6 shadow-sm">
+        <IncidentDetailContent incidentId={id} />
+      </div>
     </div>
   );
 }

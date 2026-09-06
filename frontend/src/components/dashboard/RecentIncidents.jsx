@@ -99,6 +99,24 @@ export default function RecentIncidents({ incidents = [], loading = false }) {
     },
   ];
 
+  const [showLowRisk, setShowLowRisk] = React.useState(true);
+  
+  React.useEffect(() => {
+    try {
+      const prefs = JSON.parse(localStorage.getItem('cg_settings_preferences') || '{}');
+      if (prefs.showLowRisk === false) {
+        setShowLowRisk(false);
+      }
+    } catch (e) {}
+  }, []);
+
+  const filteredIncidents = incidents.filter(incident => {
+    if (!showLowRisk && String(incident.risk_level).toUpperCase() === 'LOW') {
+      return false;
+    }
+    return true;
+  });
+
   return (
     <div className="flex flex-col gap-4 text-left w-full">
       <div className="flex items-center justify-between select-none">
@@ -117,7 +135,7 @@ export default function RecentIncidents({ incidents = [], loading = false }) {
 
       <Table
         columns={columns}
-        data={incidents}
+        data={filteredIncidents}
         isLoading={loading}
         emptyMessage="No Recent Incidents Found"
         emptySubMessage="Correlate logs or submit a new telemetry stream to generate alerts."

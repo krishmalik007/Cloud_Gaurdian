@@ -1,12 +1,13 @@
 import json
+import threading
+from typing import Optional
 
 from confluent_kafka import Consumer
 
 from app.config import get_settings
 from app.logger import logger
-from app.parser.parser import log_parser
-from app.normalizer.factory import normalizer_factory
-from app.utils.log_sanitizer import redact_credentials
+from app.services.log_processor import log_processor
+from app.utils.redaction import redact_sensitive_data
 
 settings = get_settings()
 
@@ -19,28 +20,64 @@ class KafkaConsumerService:
     """
 
     def __init__(self):
+        self._stop_event = threading.Event()
+        self._thread: Optional[threading.Thread] = None
+        self._configured = True
+        self.consumer = None
+        
+        if not settings.KAFKA_BOOTSTRAP_SERVERS:
+            logger.warning("KAFKA_BOOTSTRAP_SERVERS not configured. Consumer will not start.")
+            self._configured = False
+            return
 
-        self.consumer = Consumer(
-            {
-                "bootstrap.servers": settings.KAFKA_BOOTSTRAP_SERVERS,
-                "group.id": "cloudguardian-consumer-group",
-                "auto.offset.reset": "earliest",
-            }
+        logger.info("Kafka Consumer configured.")
+
+    def start(self) -> None:
+        """Start consumer background thread."""
+        if not self._configured:
+            return
+        if self._thread is not None and self._thread.is_alive():
+            return
+            
+        try:
+            self.consumer = Consumer(
+                {
+                    "bootstrap.servers": settings.KAFKA_BOOTSTRAP_SERVERS,
+                    "group.id": "cloudguardian-consumer-group",
+                    "auto.offset.reset": "earliest",
+                    "enable.auto.commit": False,
+                }
+            )
+            self.consumer.subscribe([settings.KAFKA_TOPIC])
+            logger.info("Kafka Consumer initialized successfully.")
+            logger.info(f"Subscribed to topic: {settings.KAFKA_TOPIC}")
+        except Exception as e:
+            logger.error(f"Failed to create Kafka consumer: {e}")
+            return
+            
+        self._stop_event.clear()
+        self._thread = threading.Thread(
+            target=self.consume_logs,
+            name="KafkaConsumerThread",
+            daemon=True,
         )
+        self._thread.start()
+        logger.info("Kafka consumer started (background thread).")
 
-        self.consumer.subscribe([settings.KAFKA_TOPIC])
-
-        logger.info("Kafka Consumer initialized successfully.")
-        logger.info(f"Subscribed to topic: {settings.KAFKA_TOPIC}")
+    def stop(self) -> None:
+        """Stop consumer gracefully."""
+        if self._thread is None or not self._thread.is_alive():
+            return
+        logger.info("Kafka consumer stopping...")
+        self._stop_event.set()
+        self._thread.join(timeout=10)
 
     def consume_logs(self):
 
         logger.info("Waiting for incoming cloud logs...")
 
         try:
-
-            while True:
-
+            while not self._stop_event.is_set():
                 message = self.consumer.poll(timeout=1.0)
 
                 if message is None:
@@ -52,41 +89,30 @@ class KafkaConsumerService:
 
                 try:
                     # Step 1: Decode Kafka message
-                    log_data = json.loads(
-                        message.value().decode("utf-8")
-                    )
+                    log_data = json.loads(message.value().decode("utf-8"))
 
                     # Log a sanitized copy — credentials are never printed
-                    logger.info(f"Received Log: {redact_credentials(log_data)}")
+                    logger.info(f"Received Log: {redact_sensitive_data(log_data)}")
 
-                    # Step 2: Parse the log
-                    parsed_log = log_parser.parse(log_data)
+                    # Step 2: Route to LogProcessor
+                    log_processor.process_log(log_data)
 
-                    # Step 3: Normalize the parsed log
-                    provider = parsed_log.get("provider", "")
-                    normalizer = normalizer_factory.get_normalizer(provider)
-                    normalized_log = normalizer.normalize(parsed_log)
-
-                    logger.info(f"Normalized Log: {normalized_log}")
-
-                    # Step 4:
-                    # This normalized log will later be sent
-                    # to the Correlation Engine.
+                    # Step 3: Explicitly commit the message offset after successful processing
+                    self.consumer.commit(message)
 
                 except json.JSONDecodeError as e:
-
                     logger.error(f"Invalid JSON received: {e}")
+                    # Cannot retry invalid JSON, so commit to skip
+                    self.consumer.commit(message)
 
                 except Exception as e:
-
                     logger.error(f"Error processing log: {e}")
+                    # Do NOT commit on LogProcessor failure, allowing potential retry/redelivery
 
         except KeyboardInterrupt:
-
             logger.info("Kafka Consumer stopped by user.")
 
         finally:
-
             self.consumer.close()
             logger.info("Kafka Consumer closed successfully.")
 

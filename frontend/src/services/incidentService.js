@@ -31,4 +31,14 @@ export const incidentService = {
     const response = await API.delete(`/incidents/${incidentId}`);
     return response.data;
   },
+
+  updateStatus: async (incidentId, status) => {
+    const response = await API.put(`/incidents/${incidentId}/status`, { status });
+    return response.data;
+  },
+
+  addNote: async (incidentId, noteText) => {
+    const response = await API.post(`/incidents/${incidentId}/notes`, { note: noteText });
+    return response.data;
+  },
 };

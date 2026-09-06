@@ -32,7 +32,7 @@ async def get_all_audit_logs(
         logger.exception("Failed to retrieve audit logs.")
         raise HTTPException(
             status_code=500,
-            detail=str(e)
+            detail="An internal error occurred."
         )
 
 
@@ -64,5 +64,5 @@ async def get_audit_log(
         logger.exception("Failed to retrieve audit log.")
         raise HTTPException(
             status_code=500,
-            detail=str(e)
+            detail="An internal error occurred."
         )

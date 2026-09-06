@@ -64,7 +64,14 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const logout = () => {
+  const logout = async () => {
+    try {
+      if (localStorage.getItem('cg_access_token')) {
+        await authService.logout();
+      }
+    } catch (e) {
+      console.warn('Logout API failed', e);
+    }
     localStorage.removeItem('cg_access_token');
     localStorage.removeItem('cg_refresh_token');
     setUser(null);

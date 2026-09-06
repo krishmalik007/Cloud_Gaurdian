@@ -1,3 +1,5 @@
 from app.kafka.consumer import kafka_consumer
 
-kafka_consumer.consume_logs()
+if __name__ == "__main__":
+    kafka_consumer.start()
+    kafka_consumer.consume_logs()

@@ -1,7 +1,7 @@
 from typing import Optional
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
-from pydantic import Field
+from pydantic import Field, field_validator
 from functools import lru_cache
 
 
@@ -19,6 +19,9 @@ class Settings(BaseSettings):
     # FastAPI Config
     HOST: str = Field(default="0.0.0.0", description="The host IP address to bind to")
     PORT: int = Field(default=8000, description="The port for the FastAPI server")
+    CORS_ORIGINS: str = Field(default="http://localhost:5173,http://127.0.0.1:5173", description="Comma-separated list of allowed CORS origins")
+    CORS_METHODS: str = Field(default="*", description="Comma-separated list of allowed CORS methods")
+    CORS_HEADERS: str = Field(default="*", description="Comma-separated list of allowed CORS headers")
     
     # Kafka Config
     # Ellipsis (...) means this field is REQUIRED. Pydantic will throw an error if it's missing in .env
@@ -31,12 +34,32 @@ class Settings(BaseSettings):
     OPENSEARCH_USERNAME: str = Field(..., description="Admin username for OpenSearch")
     OPENSEARCH_PASSWORD: str = Field(..., description="Admin password for OpenSearch")
     OPENSEARCH_USE_SSL: bool = Field(default=False, description="Whether to use SSL for OpenSearch connection")
+    OPENSEARCH_VERIFY_CERTS: bool = Field(default=False, description="Verify OpenSearch TLS certificates")
+    OPENSEARCH_CA_CERTS: Optional[str] = Field(default=None, description="Path to CA bundle for OpenSearch")
     
     # JWT Config
     JWT_SECRET_KEY: str = Field(..., description="Secret key used to encode/decode JWTs")
     JWT_ALGORITHM: str = Field(default="HS256", description="Algorithm used for JWT signing")
     JWT_EXPIRE_MINUTES: int = Field(default=30, description="Number of minutes before an access token expires")
     JWT_REFRESH_TOKEN_EXPIRE_DAYS: int = Field(default=7, description="Number of days before a refresh token expires")
+
+    @field_validator("JWT_SECRET_KEY")
+    @classmethod
+    def validate_jwt_secret_length(cls, v: str) -> str:
+        """
+        Enforce a minimum length of 32 characters for the JWT secret key.
+        A short or placeholder secret allows attackers to forge JWT tokens.
+        Generate a safe key with: python -c "import secrets; print(secrets.token_hex(32))"
+        The secret value is intentionally not included in this error message.
+        """
+        if len(v) < 32:
+            raise ValueError(
+                "JWT_SECRET_KEY is too short (minimum 32 characters required). "
+                "The application cannot start with a weak JWT secret. "
+                "Generate a strong key with: "
+                "python -c \"import secrets; print(secrets.token_hex(32))\""
+            )
+        return v
     
     # Logging Config
     LOG_LEVEL: str = Field(default="INFO", description="Logging level (e.g., DEBUG, INFO, WARNING, ERROR)")

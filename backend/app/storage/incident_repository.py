@@ -1,5 +1,6 @@
 from app.logger import logger
 from app.storage.opensearch_client import client
+from app.utils.redaction import redact_sensitive_data
 
 
 class IncidentRepository:
@@ -8,10 +9,35 @@ class IncidentRepository:
 
     def __init__(self):
         if not client.indices.exists(index=self.INDEX_NAME):
-            client.indices.create(index=self.INDEX_NAME)
+            mapping = {
+                "mappings": {
+                    "properties": {
+                        "incident_id": {"type": "keyword"},
+                        "status": {"type": "text", "fields": {"keyword": {"type": "keyword"}}},
+                        "priority": {"type": "text", "fields": {"keyword": {"type": "keyword"}}},
+                        "risk_score": {"type": "long"},
+                        "risk_level": {"type": "text", "fields": {"keyword": {"type": "keyword"}}},
+                        "username": {"type": "text", "fields": {"keyword": {"type": "keyword"}}},
+                        "provider": {"type": "text", "fields": {"keyword": {"type": "keyword"}}},
+                        "created_at": {"type": "date"},
+                        "updated_at": {"type": "date"},
+                        "alerts": {"type": "object"},
+                        "event_summary": {"type": "object"},
+                        "raw_log": {"type": "object"},
+                        "notes": {"type": "object"},
+                        "analyst_attention": {"type": "keyword"},
+                        "xdr_assessment": {"type": "text"}
+                    }
+                }
+            }
+            client.indices.create(index=self.INDEX_NAME, body=mapping)
             logger.info(f"Created OpenSearch index: {self.INDEX_NAME}")
 
     def save_incident(self, incident: dict):
+        # Defense in depth: Ensure any raw logs are fully redacted before storage
+        if "raw_log" in incident:
+            incident["raw_log"] = redact_sensitive_data(incident["raw_log"])
+            
         client.index(
             index=self.INDEX_NAME,
             id=incident["incident_id"],
@@ -99,13 +125,16 @@ class IncidentRepository:
         total = response["hits"]["total"]["value"]
 
         open_count = 0
-        closed_count = 0
+        investigating_count = 0
+        resolved_count = 0
 
         for bucket in response["aggregations"]["status"]["buckets"]:
             if bucket["key"] == "OPEN":
                 open_count = bucket["doc_count"]
-            elif bucket["key"] == "CLOSED":
-                closed_count = bucket["doc_count"]
+            elif bucket["key"] == "INVESTIGATING":
+                investigating_count = bucket["doc_count"]
+            elif bucket["key"] == "RESOLVED":
+                resolved_count = bucket["doc_count"]
 
         high = medium = low = 0
 
@@ -120,7 +149,8 @@ class IncidentRepository:
         return {
             "total_incidents": total,
             "open_incidents": open_count,
-            "closed_incidents": closed_count,
+            "investigating_incidents": investigating_count,
+            "resolved_incidents": resolved_count,
             "high_risk": high,
             "medium_risk": medium,
             "low_risk": low
@@ -227,18 +257,32 @@ class IncidentRepository:
             })
 
         if risk_level:
-            must.append({
-                "term": {
-                    "risk_level.keyword": risk_level
-                }
-            })
+            if "," in risk_level:
+                must.append({
+                    "terms": {
+                        "risk_level.keyword": risk_level.split(",")
+                    }
+                })
+            else:
+                must.append({
+                    "term": {
+                        "risk_level.keyword": risk_level
+                    }
+                })
 
         if status:
-            must.append({
-                "term": {
-                    "status.keyword": status
-                }
-            })
+            if "," in status:
+                must.append({
+                    "terms": {
+                        "status.keyword": status.split(",")
+                    }
+                })
+            else:
+                must.append({
+                    "term": {
+                        "status.keyword": status
+                    }
+                })
 
         if username:
             must.append({

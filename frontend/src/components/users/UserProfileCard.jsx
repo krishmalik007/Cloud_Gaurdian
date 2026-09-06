@@ -40,8 +40,18 @@ export default function UserProfileCard({ user }) {
         </div>
 
         <div className="flex items-center justify-between text-xs">
-          <span className="text-text-muted font-medium">Status</span>
+          <span className="text-text-muted font-medium">Account Status</span>
           <UserStatusBadge enabled={user.enabled} size="sm" />
+        </div>
+
+        <div className="flex items-center justify-between text-xs">
+          <span className="text-text-muted font-medium">Session Status</span>
+          <div className="flex items-center gap-1.5">
+            <div className={`w-2 h-2 rounded-full ${user.is_online ? 'bg-green animate-pulse' : 'bg-surface-border'}`}></div>
+            <span className={`font-semibold ${user.is_online ? 'text-green' : 'text-text-muted'}`}>
+              {user.is_online ? 'Online' : 'Offline'}
+            </span>
+          </div>
         </div>
 
         <div className="flex items-center justify-between text-xs">

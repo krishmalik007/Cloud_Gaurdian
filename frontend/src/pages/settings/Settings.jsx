@@ -15,20 +15,25 @@ export default function Settings() {
     return localStorage.getItem('cg_settings_threshold') || '75';
   });
 
-  const [notifications, setNotifications] = useState(() => {
+  const [preferences, setPreferences] = useState(() => {
     try {
-      const stored = localStorage.getItem('cg_settings_notifications');
-      return stored ? JSON.parse(stored) : { email: true, slack: false, alerts: true };
+      const stored = localStorage.getItem('cg_settings_preferences');
+      return stored ? JSON.parse(stored) : { autoRefresh: true, showLowRisk: false, detailLevel: 'standard', defaultView: 'open' };
     } catch {
-      return { email: true, slack: false, alerts: true };
+      return { autoRefresh: true, showLowRisk: false, detailLevel: 'standard', defaultView: 'open' };
     }
   });
 
   const handleSave = () => {
-    localStorage.setItem('cg_settings_refresh', refreshInterval);
-    localStorage.setItem('cg_settings_threshold', riskThreshold);
-    localStorage.setItem('cg_settings_notifications', JSON.stringify(notifications));
-    toast.success('SOC settings saved successfully.');
+    try {
+      localStorage.setItem('cg_settings_refresh', refreshInterval);
+      localStorage.setItem('cg_settings_threshold', riskThreshold);
+      localStorage.setItem('cg_settings_preferences', JSON.stringify(preferences));
+      localStorage.removeItem('cg_settings_notifications');
+      toast.success('SOC settings saved successfully.');
+    } catch (e) {
+      toast.error('Failed to save settings.');
+    }
   };
 
   return (
@@ -53,10 +58,10 @@ export default function Settings() {
                 onChange={(e) => setRefreshInterval(e.target.value)}
                 className="bg-background border border-border-color rounded-lg px-3 py-2 text-xs text-text-primary outline-none focus:border-primary-blue w-full"
               >
+                <option value="5">Every 5 seconds</option>
                 <option value="10">Every 10 seconds</option>
                 <option value="30">Every 30 seconds</option>
                 <option value="60">Every 60 seconds</option>
-                <option value="0">Manual Refresh Only</option>
               </select>
             </div>
 
@@ -85,40 +90,71 @@ export default function Settings() {
           </div>
         </Card>
 
-        {/* Integration Notification Toggles */}
-        <Card title="Notification Integrations" className="bg-surface/30">
-          <div className="flex flex-col gap-4 pt-2">
+        {/* SOC & Security Preferences */}
+        <Card title="SOC & Security Preferences" className="bg-surface/30">
+          <div className="flex flex-col gap-5 pt-2">
+            
             <div className="flex items-center justify-between p-3 rounded-lg border border-border-color bg-background/30">
               <div className="flex flex-col gap-0.5">
-                <span className="text-xs font-semibold text-text-primary flex items-center gap-1.5">
-                  <HiOutlineBell className="w-4 h-4 text-primary-blue" />
-                  Email Subscriptions
+                <span className="text-xs font-semibold text-text-primary">
+                  Incident Auto-Refresh
                 </span>
-                <span className="text-[10px] text-text-muted">Receive daily alert digests in your inbox.</span>
+                <span className="text-[10px] text-text-muted">Automatically refresh incident data when new activity is detected.</span>
               </div>
               <input
                 type="checkbox"
-                checked={notifications.email}
-                onChange={(e) => setNotifications({ ...notifications, email: e.target.checked })}
+                checked={preferences.autoRefresh}
+                onChange={(e) => setPreferences({ ...preferences, autoRefresh: e.target.checked })}
                 className="w-4 h-4 accent-primary-blue cursor-pointer"
               />
             </div>
 
             <div className="flex items-center justify-between p-3 rounded-lg border border-border-color bg-background/30">
               <div className="flex flex-col gap-0.5">
-                <span className="text-xs font-semibold text-text-primary flex items-center gap-1.5">
-                  <HiOutlineDatabase className="w-4 h-4 text-primary-blue" />
-                  OpenSearch Index Sync alerts
+                <span className="text-xs font-semibold text-text-primary">
+                  Show Low-Risk Incidents
                 </span>
-                <span className="text-[10px] text-text-muted">Generate error notifications for sync timeouts.</span>
+                <span className="text-[10px] text-text-muted">Display low-risk security events in incident lists and dashboards.</span>
               </div>
               <input
                 type="checkbox"
-                checked={notifications.alerts}
-                onChange={(e) => setNotifications({ ...notifications, alerts: e.target.checked })}
+                checked={preferences.showLowRisk}
+                onChange={(e) => setPreferences({ ...preferences, showLowRisk: e.target.checked })}
                 className="w-4 h-4 accent-primary-blue cursor-pointer"
               />
             </div>
+
+            <div className="flex flex-col gap-2">
+              <label className="text-xs font-semibold text-text-primary">
+                Incident Detail Level
+              </label>
+              <select
+                value={preferences.detailLevel}
+                onChange={(e) => setPreferences({ ...preferences, detailLevel: e.target.value })}
+                className="bg-background border border-border-color rounded-lg px-3 py-2 text-xs text-text-primary outline-none focus:border-primary-blue w-full"
+              >
+                <option value="standard">Standard</option>
+                <option value="detailed">Detailed</option>
+              </select>
+              <span className="text-[10px] text-text-muted mt-1">Controls how much event and correlation information is displayed in investigations.</span>
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <label className="text-xs font-semibold text-text-primary">
+                Default Incident View
+              </label>
+              <select
+                value={preferences.defaultView}
+                onChange={(e) => setPreferences({ ...preferences, defaultView: e.target.value })}
+                className="bg-background border border-border-color rounded-lg px-3 py-2 text-xs text-text-primary outline-none focus:border-primary-blue w-full"
+              >
+                <option value="all">All Incidents</option>
+                <option value="open">Open Incidents</option>
+                <option value="critical">High & Critical</option>
+              </select>
+              <span className="text-[10px] text-text-muted mt-1">Choose which incidents are shown by default when opening the Incidents page.</span>
+            </div>
+
           </div>
         </Card>
       </div>

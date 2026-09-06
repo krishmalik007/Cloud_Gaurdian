@@ -46,7 +46,7 @@ async def create_ioc(
 
         raise HTTPException(
             status_code=500,
-            detail=str(e)
+            detail="An internal error occurred."
         )
 
 
