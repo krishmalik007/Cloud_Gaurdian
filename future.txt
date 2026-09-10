@@ -1,243 +1,175 @@
 ================================================================================
-                CLOUDGUARDIAN - FUTURE EXPANSION ROADMAP
+          CLOUDGUARDIAN - ENTERPRISE ROADMAP & FUTURE EXPANSION
 ================================================================================
 
-CloudGuardian is currently a complete Cloud Security Monitoring Platform.
-However, many advanced features can be added in the future to transform it into
-a full Enterprise SIEM (Security Information and Event Management) and SOAR
-(Security Orchestration, Automation, and Response) platform.
+CloudGuardian has successfully established its core Multi-Cloud SIEM foundation:
+• Multi-Cloud schema normalization (AWS, Azure, GCP)
+• Real-time AWS CloudTrail log ingestion via Amazon EventBridge & AWS SQS
+• Kafka streaming ingestion & TLS-secured OpenSearch analytical storage
+• Stateful event correlation rules & dynamic risk scoring engine
+• Dynamic IOC management and Threat Intelligence lookups
+• Real-time WebSocket live updates & interactive React/Vite dashboard
+• Session management with active online presence & Admin RBAC
 
-The following are some future improvements that can be implemented.
-
-================================================================================
-1. AUTOMATED INCIDENT RESPONSE (SOAR)
-================================================================================
-
-Currently, CloudGuardian detects security incidents and alerts the security
-analyst.
-
-In the future, it can automatically respond to security threats without waiting
-for manual action.
-
-Possible Features:
-
-• Automatically disable compromised user accounts.
-• Block malicious IP addresses in AWS Security Groups or Azure Firewall.
-• Automatically revoke AWS IAM Access Keys.
-• Disable suspicious cloud resources.
-• Isolate infected virtual machines.
-• Lock compromised storage buckets.
-• Automatically create security tickets in Jira or ServiceNow.
-• Send automatic email notifications to security teams.
-
-Benefit:
-
-Instead of only detecting attacks, CloudGuardian will also stop attacks
-automatically.
+The following roadmap outlines the strategic expansion of CloudGuardian from a 
+real-time monitoring platform into a full-scale, AI-driven Enterprise SIEM 
+(Security Information and Event Management) and SOAR (Security Orchestration, 
+Automation, and Response) platform.
 
 ================================================================================
-2. MACHINE LEARNING & AI BASED THREAT DETECTION
+1. AUTOMATED INCIDENT RESPONSE & SOAR PLAYBOOKS
 ================================================================================
 
-Currently, CloudGuardian mainly uses predefined security rules.
+Goal: Shift from passive detection and alerting to active, sub-second threat containment.
 
-In the future, Artificial Intelligence and Machine Learning can be added.
-
-Possible Features:
-
-• Detect unusual user behavior.
-• Detect impossible travel logins.
-• Detect abnormal login timings.
-• Detect abnormal API usage.
-• Detect insider threats.
-• Detect unusual cloud activity.
-• Predict future attacks based on previous incidents.
-
-Possible Algorithms:
-
-• Isolation Forest
-• AutoEncoder
-• Random Forest
-• XGBoost
-• LSTM
-• Clustering Algorithms
-
-Benefit:
-
-The system can detect unknown attacks without predefined rules.
+Key Features to Implement:
+• Automated Cloud Remediation Playbooks:
+  - AWS: Automatically revoke compromised IAM Access Keys, attach deny-all policies,
+    or isolate EC2 instances into a forensic security group.
+  - Azure: Revoke Entra ID user refresh tokens, disable compromised service principals,
+    or apply network security group (NSG) block rules.
+  - GCP: Disable compromised service accounts or restrict public storage bucket IAM roles.
+• Network Perimeter Blocking:
+  - Automatically push detected malicious IPs to AWS WAF / Cloudflare IP blacklists.
+• Incident Management Integrations:
+  - Automated bi-directional synchronization with Jira Service Management, ServiceNow, 
+    and Zendesk.
+  - Real-time alert dispatch to Slack, Microsoft Teams, PagerDuty, and OpsGenie.
+• Human-in-the-Loop Approval:
+  - Interactive "One-Click Remediation" button within the Incident Details view, 
+    allowing analysts to review and trigger automated response actions with safety checks.
 
 ================================================================================
-3. REAL-TIME CLOUD LOG COLLECTION
+2. MACHINE LEARNING & AI-POWERED THREAT DETECTION
 ================================================================================
 
-Currently, logs are uploaded manually.
+Goal: Complement deterministic correlation rules with adaptive behavioral profiling 
+to catch zero-day attacks, insider threats, and subtle multi-stage intrusions.
 
-Future improvements:
-
-• Direct integration with AWS CloudTrail.
-• Direct integration with Azure Monitor.
-• Direct integration with GCP Cloud Logging.
-• Real-time webhook listeners.
-• Continuous log streaming.
-• Automatic cloud account monitoring.
-
-Benefit:
-
-Logs will automatically arrive in CloudGuardian without manual uploads.
-
-================================================================================
-4. ADVANCED KAFKA STREAMING
-================================================================================
-
-Currently, Kafka can be used for large-scale log streaming.
-
-Future improvements:
-
-• Multiple Kafka Topics.
-• Distributed Kafka Consumers.
-• Load Balancing.
-• Retry Queues.
-• Dead Letter Queue (DLQ).
-• Message Replay.
-• Event Streaming Dashboard.
-
-Benefit:
-
-CloudGuardian will be capable of processing millions of cloud events every day.
+Key Features to Implement:
+• User & Entity Behavior Analytics (UEBA):
+  - Baseline normal user activity (working hours, typical regions, common API calls).
+  - Flag statistical deviations using unsupervised Isolation Forest and Autoencoders.
+• Impossible Travel & Geolocation Anomalies:
+  - Detect concurrent logins from physically distant geographical locations within 
+    impossible timeframes using MaxMind GeoIP / IP2Location datasets.
+• Privilege Creep & API Abuse Detection:
+  - Identify anomalous spike in IAM policy queries or mass S3/Blob download volumes 
+    using rolling Z-score anomaly detectors.
+• GenAI / LLM SOC Co-Pilot:
+  - Integrate an LLM reasoning engine to automatically generate plain-language incident 
+    summaries, forensic hypotheses, and step-by-step containment checklists.
 
 ================================================================================
-5. ADVANCED THREAT INTELLIGENCE
+3. EXPANDED MULTI-CLOUD & HYBRID LOG INGESTION
 ================================================================================
 
-Currently, CloudGuardian checks local IOC databases.
+Goal: Provide true single-pane-of-glass observability across all major cloud vendors, 
+identity providers, and hybrid data centers.
 
-Future improvements:
-
-• VirusTotal Integration.
-• AlienVault OTX Integration.
-• MISP Integration.
-• AbuseIPDB Integration.
-• GreyNoise Integration.
-• Shodan Integration.
-• MITRE ATT&CK Mapping.
-• CVE Database Integration.
-
-Benefit:
-
-Threat intelligence will become much more accurate and informative.
-
-================================================================================
-7. ADVANCED DASHBOARD
-================================================================================
-
-Future Improvements:
-
-• Real-time Live Dashboard.
-• Live Incident Counter.
-• Interactive World Map.
-• Attack Timeline.
-• Security Score Widget.
-• MITRE ATT&CK Matrix Visualization.
-• Incident Heat Maps.
-• Executive Dashboard.
-• SOC Overview Dashboard.
-
-Benefit:
-
-Security teams can monitor their environment more effectively.
+Key Features to Implement:
+• Azure Event Hubs / Azure Monitor Stream:
+  - Background consumer daemon streaming Azure Activity, Entra ID Sign-in logs, and 
+    NSG flow logs via Azure Event Hubs into Kafka.
+• GCP Pub/Sub Ingestion:
+  - Real-time GCP Cloud Logging push subscription routed through GCP Pub/Sub to CloudGuardian.
+• SaaS & Identity Provider Connectors:
+  - Native webhook listeners and polling connectors for Okta, Microsoft Entra ID, 
+    Google Workspace, GitHub Audit Logs, and 1Password.
+• Generic Syslog / OpenTelemetry (OTel) Collector:
+  - Syslog-ng / FluentBit forwarder receiving standard RFC 5424 logs from on-premise 
+    firewalls, VPNs, and Linux/Windows hosts.
 
 ================================================================================
-8. ADVANCED SEARCH & FILTERING
+4. LIVE THREAT INTELLIGENCE FEEDS & MITRE ATT&CK MATRIX
 ================================================================================
 
-Future Improvements:
+Goal: Automate continuous intelligence harvesting and industry-standard threat alignment.
 
-• Full-text Search.
-• Search by Username.
-• Search by IP Address.
-• Search by Provider.
-• Search by Severity.
-• Search by Date Range.
-• Saved Searches.
-• Advanced Query Builder.
-
-Benefit:
-
-Analysts can quickly investigate incidents..
-
-================================================================================
-10. USER MANAGEMENT IMPROVEMENTS
-================================================================================
-
-Future Improvements:
-
-• Multi-Factor Authentication (MFA)
-• Password Reset via Email
-• Account Lockout
-• Session Management
-• Login History
-• Device Tracking
-• SSO Integration
-• Active Directory Integration
-
-Benefit:
-
-Improves overall platform security.
-
+Key Features to Implement:
+• Third-Party Threat Intel API Connectors:
+  - AbuseIPDB: Auto-query IP reputation and confidence-of-abuse percentages.
+  - VirusTotal / AlienVault OTX: Automatic hash, domain, and URL reputation lookups.
+  - GreyNoise: Filter out benign internet background noise from true targeted attacks.
+  - Shodan / Censys: Enrich incident metadata with exposed ports and service banners.
+• Automated Threat Feed Harvesting:
+  - Cron-driven ingestion of open-source threat lists (Emerging Threats, CISA KEV, Abuse.ch).
+• MITRE ATT&CK Visualization Matrix:
+  - Interactive MITRE matrix dashboard highlighting detected tactics (Initial Access, 
+    Execution, Persistence, Privilege Escalation, Defense Evasion, Exfiltration) with 
+    live heatmap coverage.
 
 ================================================================================
-15. AUTOMATED REPORT GENERATION
+5. HIGH-SCALE STREAM PROCESSING & KAFKA INFRASTRUCTURE
 ================================================================================
 
-Future Improvements:
+Goal: Scale pipeline throughput to tens of thousands of security events per second.
 
-Generate:
-
-• Daily Reports
-• Weekly Reports
-• Monthly Reports
-• Executive Summary Reports
-• Security Health Reports
-• Incident Trend Reports
-
-Benefit:
-
-Reduces manual reporting work.
-
+Key Features to Implement:
+• Multi-Partition Kafka Scaling:
+  - Partition `cloud_logs` topic by tenant ID or provider type with distributed 
+    consumer group workers.
+• Dead Letter Queue (DLQ) & Message Replay:
+  - Dedicated `cloud_logs_dlq` topic for malformed payloads with UI-based replay capability.
+• Stream Processing Engine:
+  - Incorporate Apache Flink or Kafka Streams for complex temporal window aggregations 
+    (e.g., sliding 5-minute event count over sliding 1-hour windows).
 
 ================================================================================
-19. CONTAINER & KUBERNETES SECURITY
+6. COMPLIANCE FRAMEWORKS & AUTOMATED REPORTING
 ================================================================================
 
-Future Improvements:
+Goal: Simplify security audit readiness and executive leadership reporting.
 
-Monitor:
-
-• Docker Containers
-• Kubernetes Clusters
-• Pods
-• Namespaces
-• Container Runtime Events
-
-Detect:
-
-• Privilege Escalation
-• Container Escape
-• Unauthorized Images
-
-Benefit:
-
-Extends CloudGuardian beyond cloud logs to cloud-native environments.
+Key Features to Implement:
+• Regulatory Compliance Mapping:
+  - Tag correlation rules and incidents with relevant controls for SOC 2, PCI-DSS v4.0, 
+    HIPAA, ISO/IEC 27001, and CIS Cloud Benchmarks.
+  - Pre-built compliance audit dashboards displaying real-time compliance readiness scores.
+• Automated Report Generation:
+  - Scheduled daily, weekly, and monthly security posture reports exported as branded 
+    PDF and CSV documents.
+  - Executive summary dashboards tailored for CISOs and security leadership.
 
 ================================================================================
-PROJECT VISION
+7. CONTAINER & CLOUD-NATIVE WORKLOAD PROTECTION (CWPP)
 ================================================================================
 
-The long-term vision of CloudGuardian is to become a complete Enterprise SIEM
-and SOAR platform capable of collecting, analyzing, correlating, and responding
-to security threats across multiple cloud providers in real time.
+Goal: Extend monitoring into container runtime and orchestration environments.
 
-It aims to provide security analysts with a centralized platform for cloud
-monitoring, incident investigation, threat intelligence, compliance reporting,
-automated response, and AI-assisted security operations.
+Key Features to Implement:
+• Kubernetes Audit & Runtime Monitoring:
+  - Ingest K8s API server audit logs to detect unauthorized cluster role bindings, 
+    pod creations in kube-system, and privileged container deployments.
+• eBPF / Falco Integration:
+  - Stream runtime security events (spawned shells in containers, unexpected binary 
+    executions, sensitive file access) into CloudGuardian.
+
+================================================================================
+8. ENTERPRISE IDENTITY, MULTI-TENANCY & GOVERNANCE
+================================================================================
+
+Goal: Support large enterprise organizations and Managed Security Service Providers (MSSPs).
+
+Key Features to Implement:
+• Enterprise Single Sign-On (SSO):
+  - SAML 2.0 / OIDC integration with Okta, Azure AD, Ping Identity, and Google Workspace.
+• Multi-Factor Authentication (MFA):
+  - TOTP (Google Authenticator / Authy) and FIDO2 / WebAuthn hardware key support.
+• Multi-Tenant Organization Isolation:
+  - Logical data isolation allowing MSSPs to monitor multiple client organizations 
+    from a single CloudGuardian deployment with per-tenant data segregation.
+• Granular Attribute-Based Access Control (ABAC):
+  - Fine-grained permission policies controlling access to specific cloud accounts, 
+    regions, or incident severities based on analyst team assignments.
+
+================================================================================
+SUMMARY VISION
+================================================================================
+
+The evolution of CloudGuardian turns cloud security telemetry into proactive, 
+intelligent defense. By coupling real-time ingestion, automated SOAR playbooks, 
+machine learning behavioral profiling, and deep MITRE ATT&CK contextualization, 
+CloudGuardian aims to empower SOC teams to detect, investigate, and remediate 
+sophisticated cloud attacks in seconds rather than hours.
 ================================================================================
