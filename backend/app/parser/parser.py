@@ -34,8 +34,17 @@ class LogParser:
             username = None
         username = username or log_data.get("username")
 
-        # region: CloudTrail uses "awsRegion"; fallback to "region"
-        region = log_data.get("awsRegion") or log_data.get("region")
+        # region: Support awsRegion, aws_region, region, and nested EventBridge detail
+        detail = log_data.get("detail", {}) if isinstance(log_data.get("detail"), dict) else {}
+        region = (
+            log_data.get("awsRegion")
+            or log_data.get("aws_region")
+            or log_data.get("region")
+            or detail.get("awsRegion")
+            or detail.get("aws_region")
+            or detail.get("region")
+            or log_data.get("eventbridge_region")
+        )
 
         parsed_log = {
             "provider": provider,

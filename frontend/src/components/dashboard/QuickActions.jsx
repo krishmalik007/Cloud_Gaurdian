@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { RiUploadCloud2Line, RiAlertLine, RiGitRepositoryPrivateLine } from 'react-icons/ri';
+import { RiUploadCloud2Line, RiAlertLine, RiGitRepositoryPrivateLine, RiFileList3Line } from 'react-icons/ri';
 import { Button } from '../ui/Button';
 import { ROUTES } from '../../constants/routes';
 
@@ -14,15 +14,15 @@ export default function QuickActions() {
         <p className="text-[11px] text-text-muted">Direct shortcuts to critical security workflows.</p>
       </div>
 
-      <div className="flex flex-wrap gap-3">
+      <div className="grid grid-cols-2 gap-3">
         <Button
           variant="outline"
           size="sm"
-          icon={RiUploadCloud2Line}
-          onClick={() => navigate(ROUTES.UPLOAD_LOGS)}
-          className="flex-1 min-w-[120px]"
+          icon={RiFileList3Line}
+          onClick={() => navigate(ROUTES.EVENTS)}
+          className="w-full text-xs"
         >
-          Upload Logs
+          Cloud Events
         </Button>
         
         <Button
@@ -30,9 +30,19 @@ export default function QuickActions() {
           size="sm"
           icon={RiAlertLine}
           onClick={() => navigate(ROUTES.INCIDENTS)}
-          className="flex-1 min-w-[120px]"
+          className="w-full text-xs"
         >
-          View Incidents
+          Incidents
+        </Button>
+
+        <Button
+          variant="outline"
+          size="sm"
+          icon={RiUploadCloud2Line}
+          onClick={() => navigate(ROUTES.UPLOAD_LOGS)}
+          className="w-full text-xs"
+        >
+          Upload Logs
         </Button>
 
         <Button
@@ -40,9 +50,9 @@ export default function QuickActions() {
           size="sm"
           icon={RiGitRepositoryPrivateLine}
           onClick={() => navigate(ROUTES.IOC_MANAGEMENT)}
-          className="flex-1 min-w-[120px]"
+          className="w-full text-xs"
         >
-          IOC Management
+          IOC Registry
         </Button>
       </div>
     </div>

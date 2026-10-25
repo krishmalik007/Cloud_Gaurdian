@@ -16,7 +16,7 @@ import SystemHealth from '../../components/dashboard/SystemHealth';
 import ThreatFeed from '../../components/dashboard/ThreatFeed';
 
 // Icons
-import { RiAlertLine, RiBroadcastLine, RiUserSharedLine } from 'react-icons/ri';
+import { RiAlertLine, RiBroadcastLine, RiUserSharedLine, RiFileList3Line } from 'react-icons/ri';
 
 export default function Dashboard() {
   const { user } = useAuth();
@@ -73,7 +73,15 @@ export default function Dashboard() {
       </div>
 
       {/* KPI Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+        <StatCard
+          title="Total Ingested Events"
+          value={summary?.total_events || 0}
+          icon={RiFileList3Line}
+          variant="primary"
+          loading={isLoading}
+          trend={{ type: 'up', value: 'Live' }}
+        />
         <StatCard
           title="Total Correlated Incidents"
           value={summary?.total_incidents || 0}

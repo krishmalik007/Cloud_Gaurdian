@@ -27,6 +27,36 @@ def test_console_login():
     assert result["event_time"] == "2026-07-27T12:00:00Z"
 
 
+def test_console_login_failed():
+    """Failed ConsoleLogin via signin service → FAILED_LOGIN"""
+
+    log = {
+        "provider": "AWS",
+        "eventName": "ConsoleLogin",
+        "eventSource": "signin.amazonaws.com",
+        "errorMessage": "Failed authentication",
+        "responseElements": {
+            "ConsoleLogin": "Failure"
+        },
+        "eventTime": "2026-07-27T12:00:00Z",
+        "awsRegion": "ap-south-1",
+        "sourceIPAddress": "10.0.0.5",
+        "userIdentity": {
+            "userName": "krish"
+        }
+    }
+
+    result = aws_normalizer.normalize(log)
+
+    assert result["provider"] == "AWS"
+    assert result["username"] == "krish"
+    assert result["event_name"] == "ConsoleLogin"
+    assert result["event_type"] == "FAILED_LOGIN"
+    assert result["region"] == "ap-south-1"
+    assert result["source_ip"] == "10.0.0.5"
+    assert result["event_time"] == "2026-07-27T12:00:00Z"
+
+
 def test_assume_role():
     """AssumeRole via STS → AUTHENTICATION"""
 
@@ -195,6 +225,9 @@ def test_credentials_redacted():
 if __name__ == "__main__":
     test_console_login()
     print("[PASS] ConsoleLogin -> AUTHENTICATION")
+
+    test_console_login_failed()
+    print("[PASS] ConsoleLogin (Failed) -> FAILED_LOGIN")
 
     test_assume_role()
     print("[PASS] AssumeRole -> AUTHENTICATION")

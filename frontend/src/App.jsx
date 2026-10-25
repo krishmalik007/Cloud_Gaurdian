@@ -26,6 +26,7 @@ const Register = React.lazy(() => import('./pages/auth/Register'));
 const Dashboard = React.lazy(() => import('./pages/dashboard/Dashboard'));
 const Incidents = React.lazy(() => import('./pages/incidents/IncidentPage'));
 const IncidentDetails = React.lazy(() => import('./pages/incidents/IncidentDetails'));
+const Events = React.lazy(() => import('./pages/events/EventsPage'));
 const UploadLogs = React.lazy(() => import('./pages/logs/UploadLogs'));
 const IOCManagement = React.lazy(() => import('./pages/ioc/IOCManagement'));
 const ThreatLookup = React.lazy(() => import('./pages/threat/ThreatCenter'));
@@ -97,6 +98,14 @@ export default function App() {
                   element={
                     <ProtectedRoute>
                       <IncidentDetails />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path={ROUTES.EVENTS}
+                  element={
+                    <ProtectedRoute>
+                      <Events />
                     </ProtectedRoute>
                   }
                 />

@@ -1,7 +1,27 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from app.correlation.alerts import Alert
 from app.correlation.rule_config import RULE_CONFIG
+
+
+def _parse_event_timestamp(event) -> datetime:
+    """
+    Safely extract and normalize the timestamp from an event dictionary.
+    Handles datetime objects (with or without tzinfo) and ISO string timestamps.
+    Falls back to current UTC time.
+    """
+    if not isinstance(event, dict):
+        return datetime.now(timezone.utc)
+    ts = event.get("timestamp") or event.get("event_time")
+    if isinstance(ts, datetime):
+        return ts if ts.tzinfo is not None else ts.replace(tzinfo=timezone.utc)
+    if isinstance(ts, str):
+        try:
+            dt = datetime.fromisoformat(ts.replace("Z", "+00:00"))
+            return dt if dt.tzinfo is not None else dt.replace(tzinfo=timezone.utc)
+        except Exception:
+            pass
+    return datetime.now(timezone.utc)
 
 
 def check(recent_events, current_event):
@@ -87,7 +107,7 @@ def check_multiple_failed_logins(recent_events, current_event):
     threshold = config["threshold"]
     window = timedelta(minutes=config["window_minutes"])
 
-    current_time = current_event["timestamp"]
+    current_time = _parse_event_timestamp(current_event)
 
     failed_count = 0
     matched_events = []
@@ -97,7 +117,7 @@ def check_multiple_failed_logins(recent_events, current_event):
         if event.get("event_type") != "FAILED_LOGIN":
             continue
 
-        event_time = event.get("timestamp")
+        event_time = _parse_event_timestamp(event)
 
         if event_time is None:
             continue
@@ -145,7 +165,7 @@ def check_brute_force(recent_events, current_event):
     threshold = config["threshold"]
     window = timedelta(minutes=config["window_minutes"])
 
-    current_time = current_event["timestamp"]
+    current_time = _parse_event_timestamp(current_event)
 
     failed_count = 0
     matched_events = []
@@ -155,7 +175,7 @@ def check_brute_force(recent_events, current_event):
         if event.get("event_type") != "FAILED_LOGIN":
             continue
 
-        event_time = event.get("timestamp")
+        event_time = _parse_event_timestamp(event)
 
         if event_time is None:
             continue
@@ -203,7 +223,7 @@ def check_multiple_ips(recent_events, current_event):
     threshold = config["threshold"]
     window = timedelta(minutes=config["window_minutes"])
 
-    current_time = current_event["timestamp"]
+    current_time = _parse_event_timestamp(current_event)
 
     unique_ips = set()
 
@@ -212,7 +232,7 @@ def check_multiple_ips(recent_events, current_event):
         if event.get("event_type") != "LOGIN_SUCCESS":
             continue
 
-        event_time = event.get("timestamp")
+        event_time = _parse_event_timestamp(event)
 
         if event_time is None:
             continue
@@ -268,7 +288,7 @@ def check_business_hours(recent_events, current_event):
     start_hour = config["start_hour"]
     end_hour = config["end_hour"]
 
-    current_time = current_event.get("timestamp", datetime.utcnow())
+    current_time = _parse_event_timestamp(current_event)
 
     if current_time.hour < start_hour or current_time.hour >= end_hour:
 
@@ -310,7 +330,7 @@ def check_concurrent_login(recent_events, current_event):
     if current_ip is None:
         return alerts
 
-    current_time = current_event["timestamp"]
+    current_time = _parse_event_timestamp(current_event)
 
     window = timedelta(minutes=config["window_minutes"])
 
@@ -332,7 +352,7 @@ def check_concurrent_login(recent_events, current_event):
         if previous_ip == current_ip:
             continue
 
-        event_time = event.get("timestamp")
+        event_time = _parse_event_timestamp(event)
 
         if event_time is None:
             continue
@@ -442,7 +462,7 @@ def check_multiple_provider_login(recent_events, current_event):
 
     config = RULE_CONFIG["MULTIPLE_PROVIDER_LOGIN"]
 
-    current_time = current_event["timestamp"]
+    current_time = _parse_event_timestamp(current_event)
 
     window = timedelta(minutes=config["window_minutes"])
 
@@ -453,7 +473,7 @@ def check_multiple_provider_login(recent_events, current_event):
         if event.get("event_type") != "LOGIN_SUCCESS":
             continue
 
-        event_time = event.get("timestamp")
+        event_time = _parse_event_timestamp(event)
 
         if event_time is None:
             continue

@@ -4,6 +4,8 @@ export const ROUTES = {
   DASHBOARD: '/',
   INCIDENTS: '/incidents',
   INCIDENT_DETAILS: '/incidents/:id',
+  EVENTS: '/events',
+  EVENT_DETAILS: '/events/:id',
   UPLOAD_LOGS: '/operations/upload',
   IOC_MANAGEMENT: '/threat/iocs',
   THREAT_INTEL: '/threat/search',

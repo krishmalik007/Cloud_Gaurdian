@@ -16,7 +16,8 @@ import {
   RiGitRepositoryPrivateLine, 
   RiRadarLine,
   RiUserSettingsLine,
-  RiHistoryLine
+  RiHistoryLine,
+  RiFileList3Line
 } from 'react-icons/ri';
 import { ROUTES } from '../../constants/routes';
 import { useAuth } from '../../context/AuthContext';
@@ -38,6 +39,7 @@ export default function GlobalSearch({ isOpen, onClose }) {
   const commandItems = [
     { label: 'Security Dashboard', path: ROUTES.DASHBOARD, icon: RiDashboardLine, category: 'Navigation' },
     { label: 'Incident Center', path: ROUTES.INCIDENTS, icon: RiAlertLine, category: 'Navigation' },
+    { label: 'Cloud Events Telemetry', path: ROUTES.EVENTS, icon: RiFileList3Line, category: 'Navigation' },
     { label: 'Upload Cloud Logs', path: ROUTES.UPLOAD_LOGS, icon: RiUploadCloud2Line, category: 'Navigation' },
     { label: 'IOC Watchlist Registry', path: ROUTES.IOC_MANAGEMENT, icon: RiGitRepositoryPrivateLine, category: 'Navigation' },
     { label: 'Threat Intel Center', path: ROUTES.THREAT_INTEL, icon: RiRadarLine, category: 'Navigation' },

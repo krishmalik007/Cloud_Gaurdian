@@ -88,6 +88,11 @@ class KafkaConsumerService:
                     continue
 
                 try:
+                    logger.info(
+                        f"Kafka message received from topic '{message.topic()}' "
+                        f"[partition {message.partition()}] offset {message.offset()}."
+                    )
+
                     # Step 1: Decode Kafka message
                     log_data = json.loads(message.value().decode("utf-8"))
 
@@ -99,14 +104,22 @@ class KafkaConsumerService:
 
                     # Step 3: Explicitly commit the message offset after successful processing
                     self.consumer.commit(message)
+                    logger.info(
+                        f"Kafka offset {message.offset()} committed successfully after log processing."
+                    )
 
                 except json.JSONDecodeError as e:
                     logger.error(f"Invalid JSON received: {e}")
                     # Cannot retry invalid JSON, so commit to skip
                     self.consumer.commit(message)
+                    logger.info(
+                        f"Kafka offset {message.offset()} committed (skipped malformed message)."
+                    )
 
                 except Exception as e:
-                    logger.error(f"Error processing log: {e}")
+                    logger.error(
+                        f"Error processing log at offset {message.offset()}: {e}. Offset NOT committed."
+                    )
                     # Do NOT commit on LogProcessor failure, allowing potential retry/redelivery
 
         except KeyboardInterrupt:

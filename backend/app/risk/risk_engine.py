@@ -1,3 +1,4 @@
+from app.correlation.rule_config import RULE_CONFIG
 from app.logger import logger
 
 
@@ -22,7 +23,25 @@ class RiskEngine:
         # --------------------------------
         # Alert-based scoring
         # --------------------------------
-        score += len(alerts) * 10
+        for alert in alerts:
+            if isinstance(alert, dict):
+                sev = alert.get("severity")
+                if not sev and "alert_type" in alert:
+                    sev = RULE_CONFIG.get(alert["alert_type"], {}).get("severity")
+                sev = (sev or "").upper()
+
+                if sev == "CRITICAL":
+                    score += 90
+                elif sev == "HIGH":
+                    score += 70
+                elif sev == "MEDIUM":
+                    score += 40
+                elif sev == "LOW":
+                    score += 15
+                else:
+                    score += 10
+            else:
+                score += 10
 
         # --------------------------------
         # IOC-based scoring

@@ -12,6 +12,7 @@ from app.config import get_settings
 from app.logger import logger
 from app.services.opensearch_service import opensearch_service
 from app.services.aws_sqs_consumer import sqs_consumer
+from app.services.cloudtrail_s3_service import s3_ingestion_service
 from app.kafka.consumer import kafka_consumer
 from app.services.websocket_manager import ws_manager
 from app.auth.jwt_handler import verify_access_token
@@ -31,6 +32,7 @@ from app.routes.audit import router as audit_router
 from app.routes.users import router as users_router
 from app.routes.threat import router as threat_router
 from app.routes.iocs import router as iocs_router
+from app.routes.events import router as events_router
 
 # Load application settings
 settings = get_settings()
@@ -59,9 +61,10 @@ async def lifespan(app: FastAPI):
     else:
         logger.error("OpenSearch connection failed.")
 
-    # Start background consumers
+    # Start background consumers and services
     sqs_consumer.start()
     kafka_consumer.start()
+    s3_ingestion_service.start()
     logger.info("=" * 60)
     
     yield
@@ -71,6 +74,7 @@ async def lifespan(app: FastAPI):
     logger.info(f"{settings.APP_NAME} is shutting down...")
 
     # Stop background consumers gracefully
+    s3_ingestion_service.stop()
     sqs_consumer.stop()
     kafka_consumer.stop()
 
@@ -139,6 +143,7 @@ app.include_router(audit_router)
 app.include_router(users_router)
 app.include_router(threat_router)
 app.include_router(iocs_router)
+app.include_router(events_router)
 
 
 @app.get("/", tags=["Root"])
@@ -154,7 +159,9 @@ async def root():
         "version": settings.APP_VERSION,
         "status": "Running",
         "health": "/health/",
-        "log_ingestion": "/logs/"
+        "log_ingestion": "/logs/",
+        "events": "/events/",
+        "incidents": "/incidents/"
     }
     if settings.DEBUG:
         response["documentation"] = "/docs"

@@ -11,31 +11,34 @@ class IOCRepository:
 
     def __init__(self):
 
-        if not client.indices.exists(index=self.INDEX_NAME):
+        try:
+            if not client.indices.exists(index=self.INDEX_NAME):
 
-            mapping = {
-                "mappings": {
-                    "properties": {
-                        "ioc_id": {"type": "keyword"},
-                        "type": {"type": "keyword"},
-                        "value": {"type": "keyword"},
-                        "severity": {"type": "keyword"},
-                        "source": {"type": "keyword"},
-                        "description": {"type": "text"},
-                        "enabled": {"type": "boolean"},
-                        "created_at": {"type": "date"}
+                mapping = {
+                    "mappings": {
+                        "properties": {
+                            "ioc_id": {"type": "keyword"},
+                            "type": {"type": "keyword"},
+                            "value": {"type": "keyword"},
+                            "severity": {"type": "keyword"},
+                            "source": {"type": "keyword"},
+                            "description": {"type": "text"},
+                            "enabled": {"type": "boolean"},
+                            "created_at": {"type": "date"}
+                        }
                     }
                 }
-            }
 
-            client.indices.create(
-                index=self.INDEX_NAME,
-                body=mapping
-            )
+                client.indices.create(
+                    index=self.INDEX_NAME,
+                    body=mapping
+                )
 
-            logger.info(
-                f"Created IOC index: {self.INDEX_NAME}"
-            )
+                logger.info(
+                    f"Created IOC index: {self.INDEX_NAME}"
+                )
+        except Exception as e:
+            logger.debug(f"OpenSearch index check failed in IOCRepository: {e}")
 
     # -----------------------------------
     # Create IOC
@@ -142,23 +145,27 @@ class IOCRepository:
         value: str
     ):
 
-        response = client.search(
-            index=self.INDEX_NAME,
-            body={
-                "query": {
-                    "term": {
-                        "value": value
+        try:
+            response = client.search(
+                index=self.INDEX_NAME,
+                body={
+                    "query": {
+                        "term": {
+                            "value": value
+                        }
                     }
                 }
-            }
-        )
+            )
 
-        hits = response["hits"]["hits"]
+            hits = response["hits"]["hits"]
 
-        if not hits:
+            if not hits:
+                return None
+
+            return hits[0]["_source"]
+        except Exception as e:
+            logger.debug(f"OpenSearch IOC search failed: {e}")
             return None
-
-        return hits[0]["_source"]
 
 
 ioc_repository = IOCRepository()

@@ -35,39 +35,39 @@ export const Pagination = ({
         </Button>
         
         <div className="flex items-center gap-1">
-          {Array.from({ length: totalPages }).map((_, idx) => {
-            const pageNum = idx + 1;
-            // Show first page, last page, current page, and pages immediately adjacent to current page
-            if (
-              pageNum === 1 ||
-              pageNum === totalPages ||
-              Math.abs(pageNum - currentPage) <= 1
-            ) {
+          {(() => {
+            const pages = [];
+            if (totalPages <= 7) {
+              for (let i = 1; i <= totalPages; i++) pages.push(i);
+            } else if (currentPage <= 4) {
+              pages.push(1, 2, 3, 4, 5, '...', totalPages);
+            } else if (currentPage >= totalPages - 3) {
+              pages.push(1, '...', totalPages - 4, totalPages - 3, totalPages - 2, totalPages - 1, totalPages);
+            } else {
+              pages.push(1, '...', currentPage - 1, currentPage, currentPage + 1, '...', totalPages);
+            }
+
+            return pages.map((item, idx) => {
+              if (item === '...') {
+                return (
+                  <span key={`ellipsis-${idx}`} className="text-text-muted px-1.5 text-xs select-none">
+                    ...
+                  </span>
+                );
+              }
               return (
                 <Button
-                  key={pageNum}
-                  variant={pageNum === currentPage ? 'primary' : 'outline'}
+                  key={item}
+                  variant={item === currentPage ? 'primary' : 'outline'}
                   size="sm"
-                  onClick={() => onPageChange(pageNum)}
-                  className={`w-8 h-8 !p-0 ${
-                    pageNum === currentPage ? 'shadow-none' : ''
-                  }`}
+                  onClick={() => onPageChange(item)}
+                  className={`w-8 h-8 !p-0 ${item === currentPage ? 'shadow-none' : ''}`}
                 >
-                  {pageNum}
+                  {item}
                 </Button>
               );
-            } else if (
-              pageNum === 2 ||
-              pageNum === totalPages - 1
-            ) {
-              return (
-                <span key={pageNum} className="text-text-muted px-1 text-xs select-none">
-                  ...
-                </span>
-              );
-            }
-            return null;
-          })}
+            });
+          })()}
         </div>
 
         <Button

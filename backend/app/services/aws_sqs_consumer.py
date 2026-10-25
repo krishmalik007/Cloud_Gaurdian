@@ -49,6 +49,7 @@ from botocore.exceptions import BotoCoreError, ClientError
 from app.config import get_settings
 from app.kafka.producer import kafka_producer
 from app.logger import logger
+from app.storage.s3_checkpoint_repository import s3_checkpoint_repository
 from app.utils.redaction import redact_sensitive_data
 
 # Load the singleton settings object (already cached via @lru_cache)
@@ -284,6 +285,16 @@ class AWSSQSConsumer:
 
         event_name: str = sanitized_detail.get("eventName", "UnknownEvent")
         event_source: str = body.get("source", "unknown")
+        event_id: str = event_detail.get("eventID") or event_detail.get("event_id")
+
+        # Deduplication check: drop duplicate CloudTrail event if already ingested (e.g. via S3)
+        if event_id and s3_checkpoint_repository.is_event_processed(event_id):
+            logger.info(
+                f"SQS message {message_id} | eventID '{event_id}' has already been processed. "
+                "Deleting duplicate message from SQS without forwarding to Kafka."
+            )
+            self._delete_message(receipt_handle, message_id)
+            return
 
         logger.info(
             f"SQS message {message_id} | "
@@ -348,8 +359,12 @@ class AWSSQSConsumer:
             return
 
         # ------------------------------------------------------------------
-        # Step 4: Delivery confirmed — now safe to delete the SQS message.
+        # Step 4: Delivery confirmed — record eventID in checkpoint repository
+        # to prevent duplicate ingestion via S3, then safely delete SQS message.
         # ------------------------------------------------------------------
+        if event_id:
+            s3_checkpoint_repository.mark_event_processed(event_id, file_key="SQS")
+
         self._delete_message(receipt_handle, message_id)
 
     def _delete_message(self, receipt_handle: str, message_id: str) -> None:

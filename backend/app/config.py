@@ -71,6 +71,21 @@ class Settings(BaseSettings):
     AWS_REGION: str = Field(default="ap-south-1", description="AWS region where the SQS queue is hosted")
     AWS_SQS_QUEUE_URL: Optional[str] = Field(default=None, description="Full URL of the AWS SQS queue to consume from")
 
+    # AWS CloudTrail S3 Ingestion Config (for multi-region batch ingestion)
+    CLOUDTRAIL_S3_INGESTION_ENABLED: bool = Field(default=False, description="Enable periodic S3 CloudTrail log ingestion")
+    CLOUDTRAIL_S3_BUCKET: Optional[str] = Field(default="aws-cloudtrail-logs-195236889241-96382ad3", description="Central S3 bucket containing CloudTrail logs")
+    CLOUDTRAIL_S3_PREFIX: str = Field(default="AWSLogs/195236889241/CloudTrail/", description="S3 prefix for CloudTrail logs")
+    CLOUDTRAIL_S3_SCAN_INTERVAL_SECONDS: int = Field(default=1, description="Interval in seconds between S3 scans (default 1s)")
+    CLOUDTRAIL_S3_REGION: str = Field(default="ap-south-1", description="AWS Region of the S3 bucket")
+    CLOUDTRAIL_S3_MAX_FILES_PER_SCAN: int = Field(default=100, description="Maximum number of new log files to process per scan")
+    CLOUDTRAIL_S3_BACKFILL_ENABLED: bool = Field(default=False, description="Enable historical log backfill across all past dates")
+    CLOUDTRAIL_S3_LOOKBACK_HOURS: int = Field(default=24, description="Lookback window in hours for initial scan when backfill is disabled")
+    CLOUDTRAIL_S3_START_DATE: Optional[str] = Field(default=None, description="Optional ISO start date/time (e.g. '2026-10-19T00:00:00Z') for filtering S3 objects")
+    CLOUDTRAIL_S3_AWS_PROFILE: Optional[str] = Field(default=None, description="Optional named AWS CLI profile for S3 ingestion (e.g. cloudguardian-s3)")
+    CLOUDTRAIL_S3_ACCESS_KEY_ID: Optional[str] = Field(default=None, description="Optional dedicated AWS IAM access key for S3 ingestion")
+    CLOUDTRAIL_S3_SECRET_ACCESS_KEY: Optional[str] = Field(default=None, description="Optional dedicated AWS IAM secret access key for S3 ingestion")
+    CLOUDTRAIL_S3_REGIONS: Optional[str] = Field(default=None, description="Optional comma-separated list of AWS regions to discover/ingest (e.g. 'ap-south-1,eu-north-1'). If unset, discovers all regions under prefix.")
+
     # Instruct Pydantic to read from the .env file in the same directory (backend/.env)
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
 

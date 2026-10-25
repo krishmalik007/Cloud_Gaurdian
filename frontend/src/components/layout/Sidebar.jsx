@@ -17,7 +17,8 @@ import {
   RiUserSettingsLine,
   RiHistoryLine,
   RiUserSettingsFill,
-  RiSettings4Line
+  RiSettings4Line,
+  RiFileList3Line
 } from 'react-icons/ri';
 import { useAuth } from '../../context/AuthContext';
 import { ROUTES } from '../../constants/routes';
@@ -38,6 +39,7 @@ export const Sidebar = ({ isCollapsed, setIsCollapsed, isMobileOpen, setIsMobile
       title: 'Security Operations',
       items: [
         { label: 'Incidents', path: ROUTES.INCIDENTS, icon: RiAlertLine },
+        { label: 'Cloud Events', path: ROUTES.EVENTS, icon: RiFileList3Line },
         { label: 'Upload Logs', path: ROUTES.UPLOAD_LOGS, icon: RiUploadCloud2Line },
       ]
     },

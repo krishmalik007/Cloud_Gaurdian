@@ -1,0 +1,49 @@
+{
+  "source": [
+    {
+      "prefix": "aws."
+    }
+  ],
+  "detail-type": [
+    "AWS API Call via CloudTrail"
+  ],
+  "detail": {
+    "$or": [
+      {
+        "eventName": [
+          {
+            "anything-but": [
+              "AssumeRole"
+            ]
+          }
+        ]
+      },
+      {
+        "eventName": [
+          "AssumeRole"
+        ],
+        "userIdentity": {
+          "invokedBy": [
+            {
+              "anything-but": [
+                "events.amazonaws.com"
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "eventName": [
+          "AssumeRole"
+        ],
+        "userIdentity": {
+          "invokedBy": [
+            {
+              "exists": false
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

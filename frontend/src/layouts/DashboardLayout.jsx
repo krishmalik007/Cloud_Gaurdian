@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Outlet } from 'react-router-dom';
 import { Sidebar } from '../components/layout/Sidebar';
 import { Navbar } from '../components/layout/Navbar';
@@ -16,29 +16,59 @@ export const DashboardLayout = () => {
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const queryClient = useQueryClient();
+  const recentToastsRef = useRef(new Set());
 
   // Initialize global WebSocket connection for real-time updates across all pages
   useWebSocket('/ws/dashboard', (data) => {
+    if (data.type === 'event_ingested') {
+      // Invalidate events and dashboard query caches so live events update immediately
+      queryClient.invalidateQueries({ queryKey: ['events'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+      // Routine informational events DO NOT trigger security incident toast popups
+      return;
+    }
+
     if (data.type === 'incident_created') {
       const incident = data.data || {};
+      const incidentId = incident.incident_id;
+
+      // Toast deduplication: do not display repeated toasts for the same incident ID
+      if (incidentId) {
+        if (recentToastsRef.current.has(incidentId)) {
+          // Keep query caches fresh, but suppress duplicate toast
+          queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+          queryClient.invalidateQueries({ queryKey: ['incidents'] });
+          queryClient.invalidateQueries({ queryKey: ['events'] });
+          return;
+        }
+        recentToastsRef.current.add(incidentId);
+        // Evict after 60 seconds to prevent memory growth while protecting against bursts/reconnects
+        setTimeout(() => {
+          recentToastsRef.current.delete(incidentId);
+        }, 60000);
+      }
+
       let threshold = 75;
       try {
         threshold = parseInt(localStorage.getItem('cg_settings_threshold') || '75', 10);
       } catch (e) {}
 
+      const displayName = incident.title || incident.event_name || 'Security Event';
+
       if (incident.risk_score >= threshold) {
-        toast.error(`CRITICAL: New Incident Detected: ${incident.title || incident.event_name || 'Unknown'}`, {
+        toast.error(`CRITICAL: New Incident Detected: ${displayName}`, {
           icon: <RiAlertLine />,
           autoClose: 8000,
         });
       } else {
-        toast.info(`New Incident Detected: ${incident.title || incident.event_name || 'Unknown'}`, {
+        toast.info(`New Incident Detected: ${displayName}`, {
           autoClose: 4000,
         });
       }
-      // Globally invalidate caches to refresh both summary cards and incident lists
+      // Globally invalidate caches to refresh summary cards, incident lists, and events
       queryClient.invalidateQueries({ queryKey: ['dashboard'] });
       queryClient.invalidateQueries({ queryKey: ['incidents'] });
+      queryClient.invalidateQueries({ queryKey: ['events'] });
     }
   });
 

@@ -16,17 +16,25 @@ class EventStore:
 
     def add_event(self, event):
 
-        if "timestamp" not in event:
+        if "timestamp" not in event or not isinstance(event.get("timestamp"), datetime):
             event_time = event.get("event_time")
             if isinstance(event_time, datetime):
-                event["timestamp"] = event_time
+                if event_time.tzinfo is None:
+                    event["timestamp"] = event_time.replace(tzinfo=timezone.utc)
+                else:
+                    event["timestamp"] = event_time.astimezone(timezone.utc)
             elif isinstance(event_time, str):
                 try:
-                    event["timestamp"] = datetime.fromisoformat(event_time.replace("Z", "+00:00").replace("+00:00", "")[:19])
+                    dt = datetime.fromisoformat(event_time.replace("Z", "+00:00"))
+                    if dt.tzinfo is None:
+                        dt = dt.replace(tzinfo=timezone.utc)
+                    event["timestamp"] = dt
                 except Exception:
                     event["timestamp"] = datetime.now(timezone.utc)
             else:
                 event["timestamp"] = datetime.now(timezone.utc)
+        elif event["timestamp"].tzinfo is None:
+            event["timestamp"] = event["timestamp"].replace(tzinfo=timezone.utc)
 
         username = event.get("username", "UNKNOWN")
 

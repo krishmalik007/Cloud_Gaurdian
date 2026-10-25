@@ -40,7 +40,20 @@ def check_privilege_escalation(current_event):
 
     }
 
-    if current_event.get("event_type") not in admin_actions:
+    event_type = current_event.get("event_type")
+    is_priv_esc = event_type in admin_actions
+
+    if not is_priv_esc:
+        event_name = current_event.get("event_name")
+        if event_name in {"AttachUserPolicy", "AttachRolePolicy", "AttachGroupPolicy"}:
+            raw = current_event.get("raw_log", {}) if isinstance(current_event.get("raw_log"), dict) else current_event
+            req_params = raw.get("requestParameters", {}) if isinstance(raw, dict) else {}
+            if isinstance(req_params, dict):
+                policy_arn = str(req_params.get("policyArn", ""))
+                if "AdministratorAccess" in policy_arn:
+                    is_priv_esc = True
+
+    if not is_priv_esc:
         return alerts
 
     alerts.append(
@@ -107,7 +120,28 @@ def check_root_account_usage(current_event):
 
     alerts = []
 
-    if current_event.get("event_type") != "ROOT_LOGIN":
+    event_type = current_event.get("event_type")
+    is_root_login = event_type == "ROOT_LOGIN"
+
+    if not is_root_login:
+        event_name = current_event.get("event_name")
+        raw = current_event.get("raw_log", {}) if isinstance(current_event.get("raw_log"), dict) else current_event
+        user_identity = raw.get("userIdentity", {}) if isinstance(raw, dict) else {}
+        is_root_identity = (
+            user_identity.get("type") == "Root"
+            or str(user_identity.get("arn", "")).endswith(":root")
+            or current_event.get("username") == "root"
+            or current_event.get("identity_type") == "Root"
+        )
+        is_login = (
+            event_name == "ConsoleLogin"
+            or event_type in {"AUTHENTICATION", "LOGIN", "LOGIN_SUCCESS"}
+        )
+        is_failed = event_type == "FAILED_LOGIN"
+        if is_root_identity and is_login and not is_failed:
+            is_root_login = True
+
+    if not is_root_login:
         return alerts
 
     alerts.append(
@@ -118,9 +152,9 @@ def check_root_account_usage(current_event):
 
             severity=RULE_CONFIG["ROOT_ACCOUNT_USAGE"]["severity"],
 
-            username=current_event.get("username"),
+            username=current_event.get("username") or "root",
 
-            provider=current_event.get("provider"),
+            provider=current_event.get("provider", "AWS"),
 
             description="Root account usage detected.",
 
@@ -181,11 +215,37 @@ def check_policy_changes(current_event):
         "DELETE_POLICY",
         "UPDATE_POLICY",
         "ATTACH_POLICY",
-        "DETACH_POLICY"
+        "DETACH_POLICY",
+        "ATTACH_ADMIN_POLICY"
 
     }
 
-    if current_event.get("event_type") not in policy_events:
+    supported_aws_policy_events = {
+
+        "CreatePolicy",
+        "DeletePolicy",
+        "CreatePolicyVersion",
+        "SetDefaultPolicyVersion",
+        "DeletePolicyVersion",
+        "PutUserPolicy",
+        "PutRolePolicy",
+        "PutGroupPolicy",
+        "DeleteUserPolicy",
+        "DeleteRolePolicy",
+        "DeleteGroupPolicy",
+        "AttachUserPolicy",
+        "AttachRolePolicy",
+        "AttachGroupPolicy",
+        "DetachUserPolicy",
+        "DetachRolePolicy",
+        "DetachGroupPolicy"
+
+    }
+
+    event_type = current_event.get("event_type")
+    event_name = current_event.get("event_name")
+
+    if event_type not in policy_events and event_name not in supported_aws_policy_events:
         return alerts
 
     alerts.append(
